@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contagem Celular · NCTBio UFPel</title>
+  <meta name="description" content="Contagem celular em hemocitômetro e viabilidade celular — NCTBio Faculdade de Odontologia UFPel." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" data-view="home">
+
+    <!-- ================= PAINEL ESQUERDO ================= -->
+    <aside class="side">
+      <header class="brand">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none">
+            <rect x="4" y="4" width="32" height="32" rx="7" transform="rotate(-8 20 20)" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M16.5 11.5h7M17.5 11.5v7l-5 9.2c-.6 1.1.2 2.3 1.4 2.3h12.2c1.2 0 2-1.2 1.4-2.3l-5-9.2v-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14.6 24h10.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div>
+          <h1 class="brand-title">NCTBio Faculdade de Odontologia – UFPel</h1>
+          <p class="brand-sub">criado por leandro perelló duro</p>
+        </div>
+      </header>
+
+      <!-- Ilustração da câmara (telas de contagem) -->
+      <div class="chamber-wrap">
+        <div class="chamber">
+          <div class="chamber-glow"></div>
+          <div class="chamber-grid">
+            <div class="q"><span>1º Q</span></div>
+            <div class="q"><span>2º Q</span></div>
+            <div class="q"><span>4º Q</span></div>
+            <div class="q"><span>3º Q</span></div>
+          </div>
+          <div class="chamber-circle"></div>
+          <span class="chamber-label">CÂMARA DE CONTAGEM</span>
+        </div>
+      </div>
+
+      <!-- Ilustração da placa (tela de plaqueamento) -->
+      <div class="plate-wrap">
+        <div class="plate">
+          <div class="plate-wells" id="plateWells"></div>
+        </div>
+        <span class="plate-label" id="plateLabel">PLACA DE CULTIVO</span>
+      </div>
+
+      <!-- Card informativo (apenas na tela de viabilidade) -->
+      <section class="info-card">
+        <h2>Entenda o teste de viabilidade</h2>
+        <p>O teste de viabilidade celular com Azul de Trypan na diluição de 1:1 é importante para sabermos o quanto de células vivas estamos inoculando na garrafa.</p>
+        <p>Para você entender: o corante penetra somente na membrana de células mortas, dessa forma se consideram células viáveis as que não estão coradas. Outro fator importante é entender que o cálculo final se dá na multiplicação por 2 devido a diluição com o corante.</p>
+        <div class="ref-table">
+          <div class="ref-head">TABELA DE REFERÊNCIA</div>
+          <div class="ref-row"><strong>Ótima</strong><span>95% a 100%</span></div>
+          <div class="ref-row"><strong>Boa</strong><span>85% a 94%</span></div>
+          <div class="ref-row"><strong>Regular</strong><span>70% a 84% · Sinal de alerta</span></div>
+          <div class="ref-row"><strong>Ruim</strong><span>50% a 69% · acentuada morte celular</span></div>
+          <div class="ref-row"><strong>Péssima</strong><span>Abaixo de 50% · células colapsadas</span></div>
+        </div>
+        <div class="warn"><strong>Atenção:</strong> o Azul de Trypan é tóxico, então faça a contagem entre 3 a 5 minutos depois de feita a diluição no hemocitômetro e evite contato com a pele.</div>
+      </section>
+
+      <div class="arcs" aria-hidden="true"><span></span><span></span><span></span></div>
+    </aside>
+
+    <!-- ================= PAINEL DIREITO ================= -->
+    <main class="main">
+
+      <!-- ---------- HOME ---------- -->
+      <section class="view view-home">
+        <div class="topbar">
+          <span class="mono">CONTAGEM CELULAR</span>
+          <span class="status mono"><i></i>PRONTO PARA COMEÇAR</span>
+        </div>
+
+        <div class="home-center">
+          <h2 class="hero">O que você quer<br />fazer hoje?</h2>
+          <button class="option" data-go="count">
+            <span>Contar células da garrafa no hemocitômetro e plaquear experimento</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+          <button class="option" data-go="viab">
+            <span>Viabilidade celular – Descongelamento de vial de células</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- CONTAGEM POR QUADRANTE ---------- -->
+      <section class="view view-count">
+        <button class="back mono" data-go="home">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          início
+        </button>
+        <h2 class="page-title">Contagem por quadrante</h2>
+        <p class="page-sub">Registre a contagem de cada quadrante observado.</p>
+
+        <div class="count-col">
+          <label class="field">
+            <span class="field-q">1. Quantas células você contou no 1º quadrante?</span>
+            <span class="field-line"><input class="num int" data-c="0" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+          </label>
+          <label class="field">
+            <span class="field-q">2. Quantas células você contou no 2º quadrante?</span>
+            <span class="field-line"><input class="num int" data-c="1" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+          </label>
+          <label class="field">
+            <span class="field-q">3. Quantas células você contou no 3º quadrante?</span>
+            <span class="field-line"><input class="num int" data-c="2" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+          </label>
+          <label class="field">
+            <span class="field-q">4. Quantas células você contou no 4º quadrante?</span>
+            <span class="field-line"><input class="num int" data-c="3" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+          </label>
+
+          <div class="results">
+            <div class="res-row"><span>Total de células contadas na câmara</span><b id="cTotal">—</b></div>
+            <div class="res-row"><span>Quadrantes contados</span><b id="cQuad">0 quadrantes</b></div>
+            <div class="res-row"><span>Média de células</span><b id="cMean">—</b></div>
+          </div>
+
+          <label class="field">
+            <span class="field-q">Qual volume em mL de solução celular disponível no falcon?</span>
+            <span class="field-line"><input class="num dec" id="cVol" inputmode="decimal" placeholder="—" /></span>
+            <small>Informe o volume disponível no falcon.</small>
+          </label>
+
+          <div class="results">
+            <div class="res-row"><span>Células por mL <small>(média × 10.000)</small></span><b id="cPerMl">—</b></div>
+            <div class="res-row"><span>Total de células no falcon <small>(células/mL × volume)</small></span><b id="cTotFal">—</b></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-clear" data-clear="count">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Limpar campos
+            </button>
+            <span class="hint">Informe números inteiros de 0 a 999.</span>
+          </div>
+
+          <button class="option option-next" data-go="plate">
+            <span>Vamos ao plaqueamento, então?</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- PLAQUEAMENTO ---------- -->
+      <section class="view view-plate">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="count">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            contagem
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Plaqueamento</h2>
+        <p class="page-sub">Planeje a solução de trabalho a partir das células contadas na etapa anterior.</p>
+
+        <div class="count-col">
+          <div class="notice" id="pNotice">Complete a contagem (quadrantes e volume do falcon) na tela anterior para usar o total de células da solução-mãe.</div>
+
+          <label class="field">
+            <span class="field-q">1. Quantas células você quer colocar por poço?</span>
+            <span class="field-line"><input class="num big-int" id="pCells" inputmode="numeric" placeholder="—" /><em>células</em></span>
+          </label>
+
+          <label class="field">
+            <span class="field-q">2. Em quantos poços você vai colocar células?</span>
+            <span class="field-line"><input class="num big-int" id="pWells" inputmode="numeric" placeholder="—" /><em>poços</em></span>
+            <small class="italic">Será feito um cálculo com 15% a mais de poços para evitar que falte material.</small>
+            <small class="factor" id="pFactor">Fator de correção (+15%): —</small>
+          </label>
+
+          <label class="field">
+            <span class="field-q">3. Qual o volume em mL para cada poço?</span>
+            <span class="field-line"><input class="num dec" id="pWellVol" inputmode="decimal" placeholder="—" /><em>mL</em></span>
+          </label>
+
+          <label class="field">
+            <span class="field-q">4. Qual o volume em mL da suspensão celular que você pretende fazer após centrifugar a solução com tripsina e aspirar o sobrenadante?</span>
+            <span class="field-line"><input class="num dec" id="pResusp" inputmode="decimal" placeholder="—" /><em>mL</em></span>
+          </label>
+
+          <div class="plan">
+            <div class="plan-row">
+              <span>Lembre que você tem essa quantidade de células na solução-mãe</span>
+              <b id="rStock">—</b>
+              <small id="rStockF">Total de células contadas na etapa anterior.</small>
+            </div>
+            <div class="plan-row">
+              <span>Com essa quantidade de poços você irá precisar dessa quantidade de células para plaquear</span>
+              <b id="rNeed">—</b>
+              <small id="rNeedF">Poços com fator de correção × células por poço.</small>
+            </div>
+            <div class="plan-row">
+              <span>Você precisará deste volume em mL da solução-mãe (ressuspensão após centrifugação)</span>
+              <b id="rAliq">—</b>
+              <small id="rAliqF">Células necessárias ÷ (células da solução-mãe ÷ volume de ressuspensão).</small>
+            </div>
+            <div class="plan-row">
+              <span>Você vai precisar de uma solução de trabalho com volume total em mL de</span>
+              <b id="rWork">—</b>
+              <small id="rWorkF">Poços com fator de correção × volume por poço.</small>
+            </div>
+            <div class="plan-row highlight">
+              <span>Então complete a alíquota da solução-mãe com meio de cultivo com esse volume em mL</span>
+              <b id="rMedium">—</b>
+              <small id="rMediumF">Volume da solução de trabalho − alíquota da solução-mãe.</small>
+            </div>
+          </div>
+
+          <div class="leftover" id="pLeft" hidden>
+            <p class="lo-title" id="pLeftTitle"></p>
+            <div class="lo-row">
+              <span>Células que sobram após o plaqueamento</span>
+              <b id="pLeftVal">—</b>
+            </div>
+            <small id="pLeftF"></small>
+          </div>
+
+          <div class="alert" id="pAlert" hidden></div>
+
+          <div class="actions">
+            <button class="btn-clear" data-clear="plate">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Limpar campos
+            </button>
+            <span class="hint">Use vírgula para decimais nos volumes (ex.: 0,5).</span>
+          </div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- VIABILIDADE ---------- -->
+      <section class="view view-viab">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="home">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            início
+          </button>
+          <span class="status mono"><i></i><span class="status-txt">PRONTO PARA COMEÇAR</span></span>
+        </div>
+        <h2 class="page-title">Viabilidade celular</h2>
+        <p class="page-sub">Descongelamento de vial de células. Registre o total de células e a contagem de <span class="blue">CORADAS</span> por quadrante.</p>
+
+        <div class="viab-wrap">
+          <div class="two-col">
+            <div class="col">
+              <h3 class="col-title">Total de células</h3>
+              <p class="col-sub">Conte todas as células observadas.</p>
+              <label class="field sm"><span class="field-q">Qual o total de células você contou no 1º quadrante?</span><span class="field-line"><input class="num int" data-t="0" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células você contou no 2º quadrante?</span><span class="field-line"><input class="num int" data-t="1" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células você contou no 3º quadrante?</span><span class="field-line"><input class="num int" data-t="2" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células você contou no 4º quadrante?</span><span class="field-line"><input class="num int" data-t="3" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <div class="sum-box">
+                <span class="sb-label">Quadrantes contados</span>
+                <b class="sb-big" id="tQuad">0 quadrantes</b>
+                <div class="sb-row"><span>Total de células</span><b id="tSum">—</b></div>
+              </div>
+            </div>
+            <div class="col">
+              <h3 class="col-title">Contagem de células <span class="blue">CORADAS</span></h3>
+              <p class="col-sub">Conte apenas células <span class="blue">CORADAS</span>.</p>
+              <label class="field sm"><span class="field-q">Qual o total de células <span class="blue">CORADAS</span> você contou no 1º quadrante?</span><span class="field-line"><input class="num int" data-s="0" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células <span class="blue">CORADAS</span> você contou no 2º quadrante?</span><span class="field-line"><input class="num int" data-s="1" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células <span class="blue">CORADAS</span> você contou no 3º quadrante?</span><span class="field-line"><input class="num int" data-s="2" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <label class="field sm"><span class="field-q">Qual o total de células <span class="blue">CORADAS</span> você contou no 4º quadrante?</span><span class="field-line"><input class="num int" data-s="3" inputmode="numeric" placeholder="—" /><em>0–999</em></span></label>
+              <div class="sum-box">
+                <span class="sb-label">Quadrantes contados</span>
+                <b class="sb-big" id="sQuad">0 quadrantes</b>
+                <div class="sb-row"><span>Soma de células<br />CORADAS</span><b id="sSum">—</b></div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="two-col">
+            <div class="big-box">
+              <span>Soma de células NÃO-CORADAS</span>
+              <b id="vUnst">—</b>
+            </div>
+            <div class="big-box">
+              <span>Viabilidade celular</span>
+              <b id="vPct">—</b>
+              <small id="vClass"></small>
+            </div>
+          </div>
+
+          <div class="three-col">
+            <label class="mini-box">
+              <span class="mb-title">Qual o volume em mL disponível no criotubo?</span>
+              <input class="num dec big-input" id="vVol" inputmode="decimal" placeholder="Ex.: 1,5" />
+              <small>Informe o volume para calcular o total de células para expansão.</small>
+            </label>
+            <div class="mini-box center">
+              <span class="mb-title">Quantidade de células viáveis/mL</span>
+              <b class="mb-val" id="vPerMl">—</b>
+              <small>Soma de células NÃO-CORADAS ÷ quadrantes contados × 10.000 × 2</small>
+              <small class="sci-label">Notação científica</small>
+              <b class="mb-sci" id="vPerMlSci">—</b>
+            </div>
+            <div class="mini-box center">
+              <span class="mb-title">Total de células viáveis para expandir na garrafa</span>
+              <b class="mb-val" id="vTotal">—</b>
+              <small id="vTotalHint">Informe as contagens e o volume para calcular o total.</small>
+              <small class="sci-label">Notação científica</small>
+              <b class="mb-sci" id="vTotalSci">—</b>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-clear" data-clear="viab">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Limpar campos
+            </button>
+            <span class="hint">Informe números inteiros de 0 a 999 e preencha os mesmos quadrantes nas duas colunas.</span>
+          </div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
