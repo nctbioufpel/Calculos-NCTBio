@@ -796,29 +796,7 @@
   /* ---------- Histórico (com edição) ---------- */
   let hsItems = [];
   let editHistIdx = null;
-  const openHist = new Set(); // retiradas com detalhes abertos (id do 1º criotubo)
-
-  // detalhes de estoque dos criotubos de uma retirada
-  function histDetails(g) {
-    const ids = new Set(g.ids);
-    const lots = lotsOf(db.tubos.filter((t) => ids.has(t.id))).sort(byOldest);
-    return `<div class="hist-detail">
-      <div class="hd-title mono">DADOS DE ESTOQUE ${g.n > 1 ? "DESTES CRIOTUBOS" : "DESTE CRIOTUBO"}</div>
-      <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Passagem</th><th>Dens. celular</th><th>Data armazenamento</th><th>Volume</th><th>Armazenado por</th><th>Canister</th><th class="num">Qtd.</th></tr></thead>
-        <tbody>${lots.map((l) => {
-          const obs = l.tubos.find((t) => t.obs);
-          return `<tr>
-          <td>${l.pass !== "" && l.pass != null ? "P" + esc(l.pass) : "—"}</td>
-          <td>${l.dens ? `${sci(l.dens)} <small class="dim">(${Number(l.dens).toLocaleString("pt-BR")})</small>` : "—"}</td>
-          <td>${l.data ? fmtDate(l.data) : "—"}</td>
-          <td>${l.vol ? fmtNum(l.vol) + " mL" : "—"}</td>
-          <td>${l.pes ? esc(l.pes) : "—"}</td>
-          <td>${l.can}</td>
-          <td class="num">${l.tubos.length}</td></tr>${obs ? `<tr class="obs-row"><td colspan="7">Obs.: ${esc(obs.obs)}</td></tr>` : ""}`;
-        }).join("")}</tbody></table></div>
-    </div>`;
-  }
+  const openHist = new Set(); // linhagens abertas no histórico
 
   function histEditForm(g, i) {
     return `<form class="edit-form hist-edit" data-save-hist="${i}" autocomplete="off">
@@ -858,24 +836,69 @@
     $("#histSum").innerHTML = `<b>${plural(shown, "criotubo retirado", "criotubos retirados")}</b>` +
       (fl || fw ? ` <span>de ${removed.length.toLocaleString("pt-BR")} no total</span>` : "") +
       ` <span>· ${uso.toLocaleString("pt-BR")} para uso · ${(shown - uso).toLocaleString("pt-BR")} descartados</span>`;
-    $("#histList").innerHTML = hsItems.length ? hsItems.map((g, i) => {
-      const isDesc = g.motivo !== "Uso";
+    // agrupa as retiradas por linhagem
+    const byLine = new Map();
+    hsItems.forEach((g, i) => {
+      if (!byLine.has(g.lin)) byLine.set(g.lin, []);
+      byLine.get(g.lin).push(i);
+    });
+    const linesSorted = [...byLine.keys()].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+    $("#histList").innerHTML = linesSorted.length ? linesSorted.map((lin) => {
+      const idx = byLine.get(lin);
+      const gs = idx.map((i) => hsItems[i]);
+      const tot = gs.reduce((s, g) => s + g.n, 0);
+      const nUso = gs.filter((g) => g.motivo === "Uso").reduce((s, g) => s + g.n, 0);
+      const last = gs.map((g) => g.data).filter(Boolean).sort().pop();
+      const open = openHist.has(lin);
+      const ident = (db.linhagens.find((l) => l.linhagem === lin) || {}).identificacao || "";
       return `
-      <div class="hist-row${editHistIdx === i ? " editing" : ""}">
-        <span class="hist-date mono">${g.data ? fmtDate(g.data) : "sem data"}</span>
-        <div class="hist-info" role="button" tabindex="0" data-expand-hist="${g.ids[0]}" aria-expanded="${openHist.has(g.ids[0])}" title="Ver dados de estoque">
-          <b>${plural(g.n, "criotubo", "criotubos")} de ${esc(g.lin)} <i class="chev${openHist.has(g.ids[0]) ? " up" : ""}">▾</i></b>
-          <span>Canister ${g.can} · ${isDesc ? `<span class="tag inc">${esc(g.motivo.toUpperCase())}</span>` : "Uso"}${g.por ? ` · ${esc(g.por)}` : ""}</span>
-          ${g.obs ? `<span class="hist-obs">${esc(g.obs)}</span>` : ""}
+      <div class="hl${open ? " open" : ""}">
+        <div class="hl-head" role="button" tabindex="0" data-expand-hist="${esc(lin)}" aria-expanded="${open}">
+          <div class="hl-name"><b>${esc(lin)}</b>${ident ? `<span>${esc(ident)}</span>` : ""}</div>
+          <div class="hl-stats">
+            <span><b>${tot}</b> ${tot === 1 ? "retirado" : "retirados"}</span>
+            <span class="hl-sub">${nUso} para uso · ${tot - nUso} ${tot - nUso === 1 ? "descarte" : "descartes"}${last ? ` · última ${fmtDate(last)}` : ""}</span>
+          </div>
+          <i class="chev${open ? " up" : ""}">▾</i>
         </div>
-        <div class="hist-actions">
-          <button type="button" class="link-btn" data-edit-hist="${i}">editar</button>
-          <button type="button" class="link-btn" data-undo-hist="${i}">desfazer</button>
-        </div>
-        ${openHist.has(g.ids[0]) ? histDetails(g) : ""}
-        ${editHistIdx === i ? histEditForm(g, i) : ""}
+        ${open ? `<div class="hl-body">${idx.map((i) => retiradaBlock(hsItems[i], i)).join("")}</div>` : ""}
       </div>`;
     }).join("") : `<p class="empty">Nenhuma retirada registrada.</p>`;
+  }
+
+  // uma retirada dentro da linhagem: data, quem retirou e todos os dados de estoque
+  function retiradaBlock(g, i) {
+    const isDesc = g.motivo !== "Uso";
+    const ids = new Set(g.ids);
+    const lots = lotsOf(db.tubos.filter((t) => ids.has(t.id))).sort(byOldest);
+    return `
+      <div class="rt${editHistIdx === i ? " editing" : ""}">
+        <div class="rt-head">
+          <span class="rt-date mono">${g.data ? fmtDate(g.data) : "sem data"}</span>
+          <div class="rt-info">
+            <b>${plural(g.n, "criotubo", "criotubos")} · canister ${g.can}</b>
+            <span>${isDesc ? `<span class="tag inc">${esc(g.motivo.toUpperCase())}</span>` : "Uso"}${g.por ? ` · retirado por <strong>${esc(g.por)}</strong>` : ""}</span>
+            ${g.obs ? `<span class="hist-obs">${esc(g.obs)}</span>` : ""}
+          </div>
+          <div class="hist-actions">
+            <button type="button" class="link-btn" data-edit-hist="${i}">editar</button>
+            <button type="button" class="link-btn" data-undo-hist="${i}">desfazer</button>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table class="tbl rt-tbl">
+          <thead><tr><th>Passagem</th><th>Dens. celular</th><th>Data armazenamento</th><th>Volume</th><th>Armazenado por</th><th class="num">Qtd.</th></tr></thead>
+          <tbody>${lots.map((l) => {
+            const obs = l.tubos.find((t) => t.obs);
+            return `<tr>
+              <td>${l.pass !== "" && l.pass != null ? "P" + esc(l.pass) : "—"}</td>
+              <td>${l.dens ? `${sci(l.dens)} <small class="dim">(${Number(l.dens).toLocaleString("pt-BR")})</small>` : "—"}</td>
+              <td>${l.data ? fmtDate(l.data) : "—"}</td>
+              <td>${l.vol ? fmtNum(l.vol) + " mL" : "—"}</td>
+              <td>${l.pes ? esc(l.pes) : "—"}</td>
+              <td class="num">${l.tubos.length}</td></tr>${obs ? `<tr class="obs-row"><td colspan="6">Obs.: ${esc(obs.obs)}</td></tr>` : ""}`;
+          }).join("")}</tbody></table></div>
+        ${editHistIdx === i ? histEditForm(g, i) : ""}
+      </div>`;
   }
   function toggleHist(el) {
     const id = el.dataset.expandHist;
@@ -920,7 +943,7 @@
     save();
   });
   $("#dwLine").addEventListener("change", () => { editLotIdx = null; renderDewar(); });
-  $("#hsLine").addEventListener("change", () => { editHistIdx = null; renderHistory(); });
+  $("#hsLine").addEventListener("change", () => { editHistIdx = null; if ($("#hsLine").value) openHist.add($("#hsLine").value); renderHistory(); });
   $("#hsWho").addEventListener("change", () => { editHistIdx = null; renderHistory(); });
 
   /* ================= Exportar / backup ================= */

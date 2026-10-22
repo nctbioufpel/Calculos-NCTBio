@@ -560,6 +560,30 @@ dd.na { color: var(--muted); }
 .hist-detail .tbl-wrap { border-top: 0; }
 .tbl small.dim { color: var(--muted); font-size: 8.5px; }
 .tbl tr.obs-row td { font-size: 9px; font-style: italic; color: var(--ink-soft); padding-top: 0; white-space: normal; }
+.hl { border: 1px solid var(--card-border); border-radius: 3px; background: var(--card); margin-top: 8px; }
+.hl.open { border-color: #a9bbb0; box-shadow: 0 6px 18px rgba(29,64,56,.07); }
+.hl-head { display: grid; grid-template-columns: 1fr auto 18px; gap: 14px; align-items: center; padding: 12px 14px; cursor: pointer; border-radius: 3px; }
+.hl-head:hover { background: var(--tint); }
+.hl-head:focus-visible { outline: 2px solid var(--ink-soft); }
+.hl-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hl-name b { font-family: var(--serif); font-weight: 400; font-size: 20px; letter-spacing: -.02em; color: var(--ink); line-height: 1.1; }
+.hl-name span { font-size: 9px; color: var(--ink-soft); }
+.hl-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 10px; color: var(--ink-soft); }
+.hl-stats b { font-family: var(--num); font-size: 18px; color: var(--ink); font-variant-numeric: oldstyle-nums; }
+.hl-sub { font-size: 9px; color: var(--muted); }
+.hl-body { border-top: 1px solid var(--card-border); padding: 4px 12px 12px; animation: fade .25s ease; }
+.rt { border-bottom: 1px dashed var(--card-border); padding: 10px 0; }
+.rt:last-child { border-bottom: 0; padding-bottom: 0; }
+.rt.editing { background: var(--tint); margin: 0 -12px; padding: 10px 12px; }
+.rt-head { display: grid; grid-template-columns: 82px 1fr auto; gap: 12px; align-items: start; margin-bottom: 6px; }
+.rt-date { font-size: 9.5px; color: var(--ink); padding-top: 2px; }
+.rt-info { display: flex; flex-direction: column; gap: 3px; }
+.rt-info b { font-size: 11px; font-weight: 600; }
+.rt-info > span { font-size: 9.5px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.rt-info strong { font-weight: 600; color: var(--ink); }
+.rt .tbl-wrap { border: 1px solid #ebe8df; border-radius: 3px; background: #fbfaf6; }
+.rt .hist-edit { background: #fbfaf6; border: 1px solid var(--card-border); border-radius: 3px; margin-top: 8px; }
+.rt .hist-actions .link-btn { font-size: 9px; color: var(--muted); }
 .hist-obs { font-style: italic; color: var(--muted) !important; }
 
 /* ---------- Fotos das linhagens ---------- */
@@ -715,6 +739,9 @@ body.no-scroll { overflow: hidden; }
   .lot-head .lot-btn { grid-column: 1 / -1; justify-self: start; }
   .lot-form { grid-template-columns: 1fr; }
   .hist-row { grid-template-columns: 1fr auto; }
+  .rt-head { grid-template-columns: 1fr auto; }
+  .rt-date { grid-column: 1 / -1; }
+  .hl-name b { font-size: 17px; }
   .hist-date { grid-column: 1 / -1; }
   .bank-stats b { font-size: 20px; }
   .ef-grid { grid-template-columns: 1fr; }
