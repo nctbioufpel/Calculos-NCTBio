@@ -10,8 +10,9 @@
 
   /* ---------------- Navegação ---------------- */
   function go(view) {
-    if (!["home", "count", "viab", "plate"].includes(view)) view = "home";
+    if (!["home", "count", "viab", "plate", "bank", "lines", "people", "store", "take", "dewar"].includes(view)) view = "home";
     app.dataset.view = view;
+    document.dispatchEvent(new CustomEvent("viewchange", { detail: view }));
     if (location.hash.slice(1) !== view) history.replaceState(null, "", "#" + view);
     window.scrollTo(0, 0);
   }

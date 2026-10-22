@@ -26,6 +26,7 @@
         <div>
           <h1 class="brand-title">NCTBio Faculdade de Odontologia – UFPel</h1>
           <p class="brand-sub">criado por leandro perelló duro</p>
+          <button type="button" class="mode-pill mono" id="modePill"></button>
         </div>
       </header>
 
@@ -50,6 +51,12 @@
           <div class="plate-wells" id="plateWells"></div>
         </div>
         <span class="plate-label" id="plateLabel">PLACA DE CULTIVO</span>
+      </div>
+
+      <!-- Ilustração do botijão com canisters (banco de células) -->
+      <div class="dewar-wrap">
+        <div class="dewar" id="dewarArt"></div>
+        <span class="plate-label" id="dewarLabel">BOTIJÃO DE N₂ LÍQUIDO · VISTA SUPERIOR</span>
       </div>
 
       <!-- Card informativo (apenas na tela de viabilidade) -->
@@ -95,6 +102,320 @@
               <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
           </button>
+          <button class="option" data-go="bank">
+            <span>Acessar o Banco de Células</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- BANCO DE CÉLULAS (MENU) ---------- -->
+      <section class="view view-bank">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="home">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            início
+          </button>
+          <span class="mono">BANCO DE CÉLULAS</span>
+        </div>
+
+        <div class="home-center bank-center">
+          <h2 class="hero">Banco de<br />Células</h2>
+          <div class="bank-stats" id="bankStats"></div>
+          <button class="option" data-go="lines">
+            <span>Cadastrar linhagem celular <small class="opt-count" id="cntLines"></small></span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="option" data-go="people">
+            <span>Cadastrar pesquisador <small class="opt-count" id="cntPeople"></small></span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="option" data-go="store">
+            <span>Armazenar criotubo</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="option" data-go="take">
+            <span>Retirar criotubo</span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+          <button class="option" data-go="dewar">
+            <span>Consultar botijão — estoque e histórico <small class="opt-count" id="cntStock"></small></span>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+
+          <div class="data-tools">
+            <span class="mono">DADOS</span>
+            <button class="link-btn" id="btnExportTubes">Exportar criotubos (CSV)</button>
+            <button class="link-btn" id="btnExportLines">Exportar linhagens (CSV)</button>
+            <button class="link-btn" id="btnBackup">Baixar backup</button>
+            <label class="link-btn">Restaurar backup<input type="file" id="fileRestore" accept=".json,application/json" hidden /></label>
+            <button class="link-btn" id="btnResetSeed">Recarregar dados da planilha</button>
+          </div>
+          <p class="data-note">Modo de teste: os dados ficam salvos <strong>neste navegador</strong>. Use “Baixar backup” para não perder nada.</p>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- LINHAGENS CELULARES ---------- -->
+      <section class="view view-lines">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="bank">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            banco de células
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Linhagens celulares</h2>
+        <p class="page-sub">Cadastre, consulte e edite as linhagens do banco. <span id="linesCount"></span></p>
+
+        <div class="lines-wrap">
+          <div class="lines-toolbar">
+            <button class="btn-primary" id="btnNewLine">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Nova linhagem
+            </button>
+            <label class="search">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="lineSearch" type="search" placeholder="Buscar linhagem, tipo, origem…" />
+            </label>
+            <select id="lineFilter" class="filter">
+              <option value="">Todas</option>
+              <option value="IMORTALIZADA">Imortalizadas</option>
+              <option value="PRIMÁRIA">Primárias</option>
+              <option value="__inc">Incompletas</option>
+              <option value="__stock">Com estoque</option>
+            </select>
+          </div>
+
+          <form class="line-form" id="lineForm" hidden autocomplete="off">
+            <div class="lf-head">
+              <h3 id="lineFormTitle">Nova linhagem</h3>
+              <button type="button" class="lf-close" data-close="lineForm" aria-label="Fechar">×</button>
+            </div>
+            <div class="lf-grid">
+              <label class="lf-field"><span>Linhagem *</span><input name="linhagem" required placeholder="Ex.: L929" /></label>
+              <label class="lf-field"><span>Identificação</span><input name="identificacao" placeholder="Ex.: Fibroblasto" /></label>
+              <label class="lf-field"><span>Tipo</span><input name="tipo" list="tipoList" placeholder="Imortalizada / Primária" /></label>
+              <label class="lf-field wide"><span>Origem</span><input name="origem" placeholder="Ex.: Tecido conjuntivo subcutâneo de camundongo" /></label>
+              <label class="lf-field"><span>Meio de crescimento</span><input name="meio" placeholder="Ex.: DMEM (4.5 g/L glucose)" /></label>
+              <label class="lf-field"><span>Suplementação</span><input name="suplementacao" placeholder="Ex.: 10% SFB, 1 mM piruvato de sódio" /></label>
+              <label class="lf-field wide"><span>Datasheet</span><input name="datasheet" placeholder="Link (https://…) ou observação, ex.: Não comercial" /></label>
+              <label class="lf-field wide"><span>Observações</span><textarea name="obs" rows="2" placeholder="Informações adicionais"></textarea></label>
+              <div class="lf-field wide photo-field">
+                <span>Foto da linhagem</span>
+                <div class="pf-row">
+                  <div class="pf-preview" id="pfPreview"><em>sem foto</em></div>
+                  <div class="pf-ctrl">
+                    <div class="pf-btns">
+                      <label class="btn-clear pf-pick">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h3l2-3h6l2 3h3v12H4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Escolher imagem
+                        <input type="file" accept="image/*" id="pfFile" hidden />
+                      </label>
+                      <button type="button" class="link-btn" id="pfRemove">remover foto</button>
+                    </div>
+                    <input name="fotoUrl" placeholder="ou cole o link de uma imagem (https://…)" />
+                    <input name="fotoCredito" placeholder="Crédito / fonte (ex.: foto do laboratório, aumento 10x)" />
+                    <small class="pf-msg" id="pfMsg">JPG ou PNG. A imagem é reduzida para até 1600 px para economizar espaço.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <datalist id="tipoList"><option value="IMORTALIZADA"></option><option value="PRIMÁRIA"></option></datalist>
+            <div class="lf-actions">
+              <button type="submit" class="btn-primary">Salvar linhagem</button>
+              <button type="button" class="btn-clear" data-close="lineForm">Cancelar</button>
+              <span class="lf-msg" id="lineFormMsg"></span>
+            </div>
+          </form>
+
+          <div class="lines-list" id="linesList"></div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- PESQUISADORES ---------- -->
+      <section class="view view-people">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="bank">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            banco de células
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Pesquisadores</h2>
+        <p class="page-sub">Pesquisadores e fornecedores que armazenam ou retiram criotubos. <span id="peopleCount"></span></p>
+
+        <div class="lines-wrap">
+          <div class="lines-toolbar">
+            <button class="btn-primary" id="btnNewPerson">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Novo cadastro
+            </button>
+            <label class="search">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="peopleSearch" type="search" placeholder="Buscar nome…" />
+            </label>
+          </div>
+
+          <form class="line-form" id="personForm" hidden autocomplete="off">
+            <div class="lf-head">
+              <h3 id="personFormTitle">Novo cadastro</h3>
+              <button type="button" class="lf-close" data-close="personForm" aria-label="Fechar">×</button>
+            </div>
+            <div class="lf-grid">
+              <label class="lf-field wide"><span>Nome completo *</span><input name="nome" required placeholder="Ex.: Maria da Silva" /></label>
+              <label class="lf-field"><span>Tipo</span>
+                <select name="tipo"><option>PESQUISADOR</option><option>FORNECEDOR</option></select>
+              </label>
+              <label class="lf-field"><span>Vínculo / função</span><input name="vinculo" placeholder="Ex.: Doutoranda, PPGO" /></label>
+              <label class="lf-field"><span>E-mail ou telefone</span><input name="contato" placeholder="Opcional" /></label>
+              <label class="lf-field wide"><span>Observações</span><textarea name="obs" rows="2"></textarea></label>
+            </div>
+            <div class="lf-actions">
+              <button type="submit" class="btn-primary">Salvar</button>
+              <button type="button" class="btn-clear" data-close="personForm">Cancelar</button>
+              <span class="lf-msg" id="personFormMsg"></span>
+            </div>
+          </form>
+
+          <div class="lines-list" id="peopleList"></div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- ARMAZENAR CRIOTUBO ---------- -->
+      <section class="view view-store">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="bank">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            banco de células
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Armazenar criotubo</h2>
+        <p class="page-sub">Registre os criotubos que entram no botijão.</p>
+        <div class="locked-note">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5"/></svg>
+          <div><b>Modo visualização</b><span>Para armazenar criotubos, entre com a senha de usuário.</span></div>
+          <button type="button" class="btn-primary" data-login>Entrar com senha</button>
+        </div>
+
+        <form class="lines-wrap store-form" id="storeForm" autocomplete="off">
+          <div class="step">
+            <span class="step-n mono">01</span>
+            <div class="step-body">
+              <div class="lf-grid">
+                <label class="lf-field"><span>Linhagem *</span><select name="linhagem" id="stLine" required></select></label>
+                <label class="lf-field"><span>Pesquisador *</span><select name="pesquisador" id="stPerson" required></select></label>
+                <label class="lf-field"><span>Passagem</span><input name="passagem" inputmode="numeric" placeholder="Ex.: 6" /></label>
+              </div>
+              <p class="step-link">Não encontrou? <button type="button" class="link-btn" data-go="lines">cadastrar linhagem</button> · <button type="button" class="link-btn" data-go="people">cadastrar pesquisador</button></p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-n mono">02</span>
+            <div class="step-body">
+              <div class="lf-grid">
+                <label class="lf-field"><span>Densidade celular (células/criotubo)</span><input name="densidade" inputmode="decimal" placeholder="Ex.: 1,36E+06 ou 1360000" /><em class="lf-hint" id="stDensHint"></em></label>
+                <label class="lf-field"><span>Volume (mL)</span><input name="volume" inputmode="decimal" value="1,5" /></label>
+                <label class="lf-field"><span>Data do congelamento</span><input name="data" type="date" /></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-n mono">03</span>
+            <div class="step-body">
+              <span class="step-title">Em qual canister?</span>
+              <div class="can-pick" id="stCanisters"></div>
+              <div class="lf-grid" style="margin-top:12px">
+                <label class="lf-field"><span>Quantidade de criotubos *</span><input name="quantidade" inputmode="numeric" value="1" required /></label>
+                <label class="lf-field wide2"><span>Observações</span><input name="obs" placeholder="Opcional" /></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="lf-actions">
+            <button type="submit" class="btn-primary">Armazenar no botijão</button>
+            <span class="lf-msg" id="storeMsg"></span>
+          </div>
+          <div class="done" id="storeDone" hidden></div>
+        </form>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- RETIRAR CRIOTUBO ---------- -->
+      <section class="view view-take">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="bank">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            banco de células
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Retirar criotubo</h2>
+        <p class="page-sub">Escolha a linhagem e o lote. Os lotes aparecem do mais antigo para o mais recente (lotes sem data, do estoque antigo, vêm primeiro).</p>
+        <div class="locked-note">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5"/></svg>
+          <div><b>Modo visualização</b><span>Para retirar criotubos, entre com a senha de usuário.</span></div>
+          <button type="button" class="btn-primary" data-login>Entrar com senha</button>
+        </div>
+
+        <div class="lines-wrap">
+          <div class="lines-toolbar">
+            <select id="tkLine" class="filter grow"></select>
+            <select id="tkCan" class="filter"></select>
+          </div>
+          <div class="done" id="takeDone" hidden></div>
+          <div class="lot-list" id="lotList"></div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- BOTIJÃO: ESTOQUE E HISTÓRICO ---------- -->
+      <section class="view view-dewar">
+        <div class="topbar topbar-inline">
+          <button class="back mono" data-go="bank">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            banco de células
+          </button>
+          <button class="back mono" data-go="home">início</button>
+        </div>
+        <h2 class="page-title">Botijão</h2>
+        <p class="page-sub">Estoque por canister e histórico de retiradas.</p>
+
+        <div class="lines-wrap">
+          <div class="tabs" role="tablist">
+            <button class="tab on" data-tab="estoque">Estoque</button>
+            <button class="tab" data-tab="historico">Histórico de retiradas <span class="tab-count" id="histTotal"></span></button>
+          </div>
+
+          <div class="tab-pane" id="paneEstoque">
+            <div class="lines-toolbar">
+              <select id="dwLine" class="filter grow"></select>
+            </div>
+            <div id="canList"></div>
+          </div>
+
+          <div class="tab-pane" id="paneHistorico" hidden>
+            <div class="lines-toolbar">
+              <select id="hsLine" class="filter grow"></select>
+              <select id="hsWho" class="filter grow"></select>
+            </div>
+            <p class="hist-sum" id="histSum"></p>
+            <div class="hist" id="histList"></div>
+          </div>
         </div>
 
         <footer class="foot mono">USO EM BANCADA</footer>
@@ -343,6 +664,28 @@
     </main>
   </div>
 
+  <!-- ---------- ACESSO ---------- -->
+  <div class="login" id="login" hidden>
+    <form class="login-card" id="loginForm" autocomplete="off">
+      <span class="brand-icon login-icon" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="4" y="4" width="32" height="32" rx="7" transform="rotate(-8 20 20)" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M16.5 11.5h7M17.5 11.5v7l-5 9.2c-.6 1.1.2 2.3 1.4 2.3h12.2c1.2 0 2-1.2 1.4-2.3l-5-9.2v-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14.6 24h10.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <h2>Acesso</h2>
+      <p>Digite a senha de usuário para inserir e editar dados.</p>
+      <input id="loginPass" type="password" inputmode="numeric" placeholder="Senha" aria-label="Senha de usuário" />
+      <button type="submit" class="btn-primary">Entrar</button>
+      <small>Pressione <b>Enter sem senha</b> para entrar só no modo visualização.</small>
+      <span class="login-msg" id="loginMsg"></span>
+    </form>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="data-seed.js"></script>
+  <script src="bank.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
