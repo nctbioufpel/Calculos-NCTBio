@@ -550,6 +550,16 @@ dd.na { color: var(--muted); }
 .hist-actions { display: flex; gap: 12px; }
 .hist-row.editing { background: var(--tint); }
 .hist-row .hist-edit { grid-column: 1 / -1; background: #fbfaf6; border: 1px solid var(--card-border); border-radius: 3px; margin-top: 4px; }
+.hist-info[data-expand-hist] { cursor: pointer; border-radius: 3px; padding: 3px 6px; margin: -3px -6px; transition: background .15s; }
+.hist-info[data-expand-hist]:hover { background: var(--tint); }
+.hist-info[data-expand-hist]:focus-visible { outline: 2px solid var(--ink-soft); }
+.chev { font-style: normal; display: inline-block; font-size: 10px; color: var(--muted); margin-left: 3px; transition: transform .2s; }
+.chev.up { transform: rotate(180deg); }
+.hist-detail { grid-column: 1 / -1; background: #fbfaf6; border: 1px solid var(--card-border); border-radius: 3px; margin-top: 4px; animation: fade .25s ease; }
+.hd-title { font-size: 8px; letter-spacing: .1em; color: var(--muted); padding: 9px 10px 0; }
+.hist-detail .tbl-wrap { border-top: 0; }
+.tbl small.dim { color: var(--muted); font-size: 8.5px; }
+.tbl tr.obs-row td { font-size: 9px; font-style: italic; color: var(--ink-soft); padding-top: 0; white-space: normal; }
 .hist-obs { font-style: italic; color: var(--muted) !important; }
 
 /* ---------- Fotos das linhagens ---------- */

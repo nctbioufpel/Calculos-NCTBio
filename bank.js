@@ -796,6 +796,29 @@
   /* ---------- Histórico (com edição) ---------- */
   let hsItems = [];
   let editHistIdx = null;
+  const openHist = new Set(); // retiradas com detalhes abertos (id do 1º criotubo)
+
+  // detalhes de estoque dos criotubos de uma retirada
+  function histDetails(g) {
+    const ids = new Set(g.ids);
+    const lots = lotsOf(db.tubos.filter((t) => ids.has(t.id))).sort(byOldest);
+    return `<div class="hist-detail">
+      <div class="hd-title mono">DADOS DE ESTOQUE ${g.n > 1 ? "DESTES CRIOTUBOS" : "DESTE CRIOTUBO"}</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Passagem</th><th>Dens. celular</th><th>Data armazenamento</th><th>Volume</th><th>Armazenado por</th><th>Canister</th><th class="num">Qtd.</th></tr></thead>
+        <tbody>${lots.map((l) => {
+          const obs = l.tubos.find((t) => t.obs);
+          return `<tr>
+          <td>${l.pass !== "" && l.pass != null ? "P" + esc(l.pass) : "—"}</td>
+          <td>${l.dens ? `${sci(l.dens)} <small class="dim">(${Number(l.dens).toLocaleString("pt-BR")})</small>` : "—"}</td>
+          <td>${l.data ? fmtDate(l.data) : "—"}</td>
+          <td>${l.vol ? fmtNum(l.vol) + " mL" : "—"}</td>
+          <td>${l.pes ? esc(l.pes) : "—"}</td>
+          <td>${l.can}</td>
+          <td class="num">${l.tubos.length}</td></tr>${obs ? `<tr class="obs-row"><td colspan="7">Obs.: ${esc(obs.obs)}</td></tr>` : ""}`;
+        }).join("")}</tbody></table></div>
+    </div>`;
+  }
 
   function histEditForm(g, i) {
     return `<form class="edit-form hist-edit" data-save-hist="${i}" autocomplete="off">
@@ -840,8 +863,8 @@
       return `
       <div class="hist-row${editHistIdx === i ? " editing" : ""}">
         <span class="hist-date mono">${g.data ? fmtDate(g.data) : "sem data"}</span>
-        <div class="hist-info">
-          <b>${plural(g.n, "criotubo", "criotubos")} de ${esc(g.lin)}</b>
+        <div class="hist-info" role="button" tabindex="0" data-expand-hist="${g.ids[0]}" aria-expanded="${openHist.has(g.ids[0])}" title="Ver dados de estoque">
+          <b>${plural(g.n, "criotubo", "criotubos")} de ${esc(g.lin)} <i class="chev${openHist.has(g.ids[0]) ? " up" : ""}">▾</i></b>
           <span>Canister ${g.can} · ${isDesc ? `<span class="tag inc">${esc(g.motivo.toUpperCase())}</span>` : "Uso"}${g.por ? ` · ${esc(g.por)}` : ""}</span>
           ${g.obs ? `<span class="hist-obs">${esc(g.obs)}</span>` : ""}
         </div>
@@ -849,11 +872,23 @@
           <button type="button" class="link-btn" data-edit-hist="${i}">editar</button>
           <button type="button" class="link-btn" data-undo-hist="${i}">desfazer</button>
         </div>
+        ${openHist.has(g.ids[0]) ? histDetails(g) : ""}
         ${editHistIdx === i ? histEditForm(g, i) : ""}
       </div>`;
     }).join("") : `<p class="empty">Nenhuma retirada registrada.</p>`;
   }
+  function toggleHist(el) {
+    const id = el.dataset.expandHist;
+    openHist.has(id) ? openHist.delete(id) : openHist.add(id);
+    renderHistory();
+  }
+  $("#histList").addEventListener("keydown", (e) => {
+    const x = e.target.closest("[data-expand-hist]");
+    if (x && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleHist(x); }
+  });
   $("#histList").addEventListener("click", (e) => {
+    const x = e.target.closest("[data-expand-hist]");
+    if (x) return toggleHist(x);
     const ed = e.target.closest("[data-edit-hist]");
     if ((ed || e.target.closest("[data-undo-hist]")) && blocked()) return;
     if (ed) {
