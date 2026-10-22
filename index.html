@@ -27,6 +27,7 @@
           <h1 class="brand-title">NCTBio Faculdade de Odontologia – UFPel</h1>
           <p class="brand-sub">criado por leandro perelló duro</p>
           <button type="button" class="mode-pill mono" id="modePill"></button>
+          <span class="sync-pill mono" id="syncPill"></span>
         </div>
       </header>
 
@@ -125,6 +126,7 @@
 
         <div class="home-center bank-center">
           <h2 class="hero">Banco de<br />Células</h2>
+          <div class="online-notice" id="onlineNotice" hidden></div>
           <div class="bank-stats" id="bankStats"></div>
           <button class="option" data-go="lines">
             <span>Cadastrar linhagem celular <small class="opt-count" id="cntLines"></small></span>
@@ -155,7 +157,7 @@
             <label class="link-btn">Restaurar backup<input type="file" id="fileRestore" accept=".json,application/json" hidden /></label>
             <button class="link-btn" id="btnResetSeed">Recarregar dados da planilha</button>
           </div>
-          <p class="data-note">Modo de teste: os dados ficam salvos <strong>neste navegador</strong>. Use “Baixar backup” para não perder nada.</p>
+          <p class="data-note" id="dataNote"></p>
         </div>
 
         <footer class="foot mono">USO EM BANCADA</footer>
@@ -683,6 +685,7 @@
     </form>
   </div>
 
+  <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="data-seed.js"></script>
   <script src="bank.js"></script>

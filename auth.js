@@ -9,6 +9,9 @@
 
   const HASH = "219wu800052";           // hash de "nctbio:" + senha
   const KEY = "nctbio.modo";
+  const KEY_PASS = "nctbio.senha";
+  let pass = "";
+  try { pass = sessionStorage.getItem(KEY_PASS) || ""; } catch (e) { /* ignora */ }
   const cyrb53 = (str, seed = 7) => {
     let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
     for (let i = 0, ch; i < str.length; i++) {
@@ -37,6 +40,7 @@
 
   function setMode(m) {
     app.dataset.mode = m;
+    if (m !== "edit") { pass = ""; try { sessionStorage.removeItem(KEY_PASS); } catch (e) { /* ignora */ } }
     write(m);
     pill.innerHTML = m === "edit"
       ? `<i></i>MODO EDIÇÃO <span>· sair</span>`
@@ -57,7 +61,11 @@
     e.preventDefault();
     const v = input.value.trim();
     if (!v) { setMode("view"); close(); return; }
-    if (cyrb53("nctbio:" + v) === HASH) { setMode("edit"); close(); return; }
+    if (cyrb53("nctbio:" + v) === HASH) {
+      pass = v;
+      try { sessionStorage.setItem(KEY_PASS, v); } catch (err) { /* ignora */ }
+      setMode("edit"); close(); return;
+    }
     msg.textContent = "Senha incorreta. Tente de novo, ou apague e pressione Enter para apenas visualizar.";
     const card = box.querySelector(".login-card");
     card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
@@ -72,11 +80,13 @@
 
   window.Auth = {
     canEdit: () => app.dataset.mode === "edit",
+    password: () => pass,
     onChange: (fn) => listeners.push(fn),
     ask: open,
   };
 
   const saved = read();
-  if (saved === "edit" || saved === "view") setMode(saved);
+  if (saved === "edit" && pass) setMode("edit");
+  else if (saved === "view") setMode("view");
   else { setMode("view"); open(); }
 })();

@@ -4,7 +4,7 @@ App web (HTML/CSS/JS puro, sem dependências) para contagem celular em hemocitô
 
 ## Publicar no GitHub Pages
 1. Crie um repositório no GitHub (ex.: `contagem-celular`).
-2. Envie os arquivos `index.html`, `styles.css`, `app.js`, `bank.js`, `data-seed.js`, `auth.js` e este `README.md` para a raiz do repositório (botão **Add file → Upload files**).
+2. Envie os arquivos `index.html`, `styles.css`, `app.js`, `bank.js`, `data-seed.js`, `auth.js`, `config.js` e este `README.md` para a raiz do repositório (botão **Add file → Upload files**).
 3. Vá em **Settings → Pages**, em *Source* escolha **Deploy from a branch**, branch `main`, pasta `/ (root)` e salve.
 4. Em 1–2 minutos o app estará em `https://SEU-USUARIO.github.io/contagem-celular/`.
 
@@ -16,6 +16,10 @@ App web (HTML/CSS/JS puro, sem dependências) para contagem celular em hemocitô
 ## Acesso
 - `auth.js`: janela de acesso. Com a senha de usuário, modo edição; Enter sem senha, modo visualização.
 - A senha não fica escrita no código (apenas um hash), mas num site estático isso evita alterações acidentais, não é segurança forte.
+
+## Banco de dados online
+- `config.js`: endereço do App da Web da Planilha Google. Vazio = modo local (dados só no navegador).
+- O código do servidor (`Code.gs`, com a senha) fica só na Planilha Google — **não** coloque no GitHub.
 
 ## Banco de Células
 - `data-seed.js`: dados iniciais importados da planilha (linhagens, pesquisadores e criotubos dos 6 canisters).

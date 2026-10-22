@@ -92,6 +92,9 @@
   };
 
   let db = Store.load();
+  if (/^https:\/\/script\.google/.test(String(window.NCTBIO_API || "").trim())) {
+    try { const c = localStorage.getItem("nctbio.banco.online"); db = c ? JSON.parse(c) : { versao: 2, linhagens: [], pesquisadores: [], tubos: [] }; } catch (e) { /* ignora */ }
+  }
   const canEdit = () => !window.Auth || window.Auth.canEdit();
   function blocked() {
     if (canEdit()) return false;
@@ -99,10 +102,244 @@
     return true;
   }
   const save = () => {
-    if (!canEdit()) { db = Store.load(); refreshAll(); blocked(); return; } // modo visualização: nada é gravado
-    Store.save(db);
+    if (!canEdit()) { revert(); blocked(); return; } // modo visualização: nada é gravado
+    if (ONLINE && !ready) {
+      alert(serverEmpty ? "A planilha online ainda está vazia. Envie os dados deste aparelho primeiro (menu do Banco de Células)." : "Aguarde: carregando os dados da planilha online.");
+      revert();
+      return;
+    }
+    if (ONLINE) push(); else Store.save(db);
     refreshAll();
   };
+  function revert() {
+    if (ONLINE) { try { db = JSON.parse(localStorage.getItem(KEY_ONLINE)) || db; } catch (e) { /* ignora */ } pull(true); }
+    else db = Store.load();
+    refreshAll();
+  }
+  /* ================= Banco online (Planilha Google) =================
+     Com window.NCTBIO_API preenchido (config.js), os dados passam a
+     ficar na planilha: todos os aparelhos veem as mesmas informações. */
+  const API = String(window.NCTBIO_API || "").trim();
+  const ONLINE = /^https:\/\/script\.google(usercontent)?\.com\//.test(API);
+  const KEY_ONLINE = "nctbio.banco.online";
+  const COLS = ["linhagens", "pesquisadores", "tubos"];
+  let ready = !ONLINE;       // online: só permite gravar depois de carregar a planilha
+  let serverEmpty = false;   // planilha ainda sem dados (falta importar)
+  let snapshot = { linhagens: {}, pesquisadores: {}, tubos: {} }; // último estado confirmado no servidor
+  let inflight = false, again = false, retryT = null, lastPull = 0;
+  let syncState = ONLINE ? "carregando" : "local";
+
+  function toRow(col, o) {
+    if (col !== "tubos") {
+      const r = {};
+      Object.keys(o).forEach((k) => { if (o[k] !== undefined && typeof o[k] !== "object") r[k] = o[k] == null ? "" : String(o[k]); });
+      return r;
+    }
+    const r = {
+      id: o.id, can: String(o.can ?? ""), lin: o.lin || "", pass: String(o.pass ?? ""), dens: o.dens == null ? "" : String(o.dens),
+      data: o.data || "", vol: o.vol == null ? "" : String(o.vol), pes: o.pes || "", obs: o.obs || "", origem: o.origem || "",
+      lote: o.lote || "", criadoEm: o.criadoEm || "", editadoEm: o.editadoEm || "",
+      rem_data: "", rem_motivo: "", rem_por: "", rem_obs: "", rem_ev: "", rem_registradoEm: "", rem_editadoEm: "",
+    };
+    if (o.rem) Object.assign(r, {
+      rem_data: o.rem.data || "", rem_motivo: o.rem.motivo || "", rem_por: o.rem.por || "", rem_obs: o.rem.obs || "",
+      rem_ev: o.rem.ev || "ret", rem_registradoEm: o.rem.registradoEm || "", rem_editadoEm: o.rem.editadoEm || "",
+    });
+    return r;
+  }
+  const numOrNull = (v) => (v === "" || v == null || !isFinite(+v) ? null : +v);
+  function fromServer(d) {
+    const tubos = (d.tubos || []).map((r) => {
+      const t = {
+        id: r.id, can: +r.can || 0, lin: r.lin || "", pass: r.pass || "", dens: numOrNull(r.dens), data: r.data || "",
+        vol: numOrNull(r.vol), pes: r.pes || "", obs: r.obs || "", origem: r.origem || "", rem: null,
+      };
+      if (r.lote) t.lote = r.lote;
+      if (r.criadoEm) t.criadoEm = r.criadoEm;
+      if (r.editadoEm) t.editadoEm = r.editadoEm;
+      if (r.rem_ev || r.rem_motivo) {
+        t.rem = { data: r.rem_data || "", motivo: r.rem_motivo || "Uso", por: r.rem_por || "", ev: r.rem_ev || "ret-" + r.id };
+        if (r.rem_obs) t.rem.obs = r.rem_obs;
+        if (r.rem_registradoEm) t.rem.registradoEm = r.rem_registradoEm;
+        if (r.rem_editadoEm) t.rem.editadoEm = r.rem_editadoEm;
+      }
+      return t;
+    });
+    const clean = (arr) => (arr || []).map((o) => { const x = {}; Object.keys(o).forEach((k) => { if (o[k] !== "") x[k] = o[k]; }); return x; });
+    return { versao: SEED.versao, linhagens: clean(d.linhagens), pesquisadores: clean(d.pesquisadores), tubos };
+  }
+  function snap(d) {
+    const s = {};
+    COLS.forEach((c) => { s[c] = {}; d[c].forEach((o) => (s[c][o.id] = JSON.stringify(toRow(c, o)))); });
+    return s;
+  }
+  function diff() {
+    const ops = {};
+    let n = 0;
+    COLS.forEach((c) => {
+      const up = [], seen = {};
+      db[c].forEach((o) => {
+        seen[o.id] = 1;
+        const r = toRow(c, o), j = JSON.stringify(r);
+        if (snapshot[c][o.id] !== j) up.push(r);
+      });
+      const del = Object.keys(snapshot[c]).filter((id) => !seen[id]);
+      if (up.length || del.length) { ops[c] = { up, del }; n += up.length + del.length; }
+    });
+    return { ops, n };
+  }
+  const senha = () => (window.Auth && window.Auth.password ? window.Auth.password() : "");
+
+  async function api(body) {
+    const res = body
+      ? await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) })
+      : await fetch(API + (API.includes("?") ? "&" : "?") + "acao=tudo&t=" + Date.now());
+    const j = await res.json();
+    if (!j.ok) { const e = new Error(j.mensagem || j.erro || "Erro no servidor"); e.code = j.erro; throw e; }
+    return j;
+  }
+
+  function setSync(s, extra) {
+    syncState = s;
+    const el = $("#syncPill");
+    if (!el) return;
+    const txt = {
+      local: "DADOS SÓ NESTE APARELHO",
+      carregando: "CARREGANDO DADOS ONLINE…",
+      ok: "ONLINE · SINCRONIZADO",
+      salvando: "SALVANDO NA PLANILHA…",
+      pendente: `SEM CONEXÃO · ${extra || ""} PENDENTE(S)`,
+      vazio: "PLANILHA ONLINE VAZIA",
+      erro: "ERRO AO SALVAR",
+    }[s];
+    el.className = "sync-pill mono s-" + s;
+    el.innerHTML = `<i></i>${txt}`;
+    el.title = s === "local" ? "Configure a Planilha Google (config.js) para compartilhar os dados entre aparelhos." : (extra && s === "erro" ? extra : "");
+    renderOnlineNotice();
+  }
+
+  function busy() {
+    // não recarrega a tela enquanto alguém está digitando/editando
+    return $$(".line-form").some((f) => !f.hidden) || editLotIdx !== null || editHistIdx !== null || openLot !== null ||
+      (currentView === "store" && document.activeElement && document.activeElement.closest("#storeForm"));
+  }
+
+  async function pull(force) {
+    if (!ONLINE || inflight) return;
+    if (ready && diff().n) return push(); // primeiro envia o que está pendente
+    if (!force && ready && busy()) return;
+    try {
+      const d = await api();
+      lastPull = Date.now();
+      const vazio = !(d.linhagens || []).length && !(d.tubos || []).length && !(d.pesquisadores || []).length;
+      if (vazio) {
+        serverEmpty = true; ready = false;
+        db = Store.load(); // mostra os dados deste aparelho até a importação
+        setSync("vazio");
+        refreshAll();
+        return;
+      }
+      serverEmpty = false;
+      const novo = fromServer(d);
+      const mudou = JSON.stringify(snap(novo)) !== JSON.stringify(snapshot);
+      snapshot = snap(novo);
+      if (mudou || !ready) {
+        db = novo;
+        try { localStorage.setItem(KEY_ONLINE, JSON.stringify(db)); } catch (e) { /* ignora */ }
+        ready = true;
+        refreshAll();
+      }
+      setSync("ok");
+    } catch (err) {
+      setSync(ready ? "pendente" : "erro", ready ? diff().n : "Não foi possível ler a planilha: " + err.message);
+    }
+  }
+
+  async function push() {
+    if (!ONLINE || !ready) return;
+    if (inflight) { again = true; return; }
+    const { ops, n } = diff();
+    if (!n) { setSync("ok"); return; }
+    inflight = true; again = false;
+    setSync("salvando");
+    try {
+      await api({ acao: "sync", senha: senha(), ops });
+      // marca como confirmado apenas o que foi enviado
+      COLS.forEach((c) => {
+        if (!ops[c]) return;
+        ops[c].up.forEach((r) => (snapshot[c][r.id] = JSON.stringify(r)));
+        ops[c].del.forEach((id) => delete snapshot[c][id]);
+      });
+      try { localStorage.setItem(KEY_ONLINE, JSON.stringify(db)); } catch (e) { /* ignora */ }
+      setSync("ok");
+    } catch (err) {
+      if (err.code === "senha") {
+        setSync("erro", "A planilha recusou a senha. Entre novamente com a senha de usuário.");
+        if (window.Auth) window.Auth.ask();
+      } else {
+        setSync("pendente", n);
+        clearTimeout(retryT);
+        retryT = setTimeout(push, 15000);
+      }
+    } finally {
+      inflight = false;
+      if (again) push();
+    }
+  }
+
+  async function uploadPhoto(lineId, dataUrl) {
+    const l = db.linhagens.find((x) => x.id === lineId);
+    const r = await api({ acao: "foto", senha: senha(), id: lineId, dados: dataUrl, nome: l ? l.linhagem : lineId });
+    const cur = db.linhagens.find((x) => x.id === lineId);
+    if (cur) { cur.fotoUrl = r.fotoUrl; cur.fotoId = r.fotoId; }
+    return r;
+  }
+
+  // Importação: envia os dados deste aparelho (e as fotos) para a planilha vazia
+  async function importar() {
+    if (blocked()) return;
+    const local = Store.load();
+    if (!confirm(`Enviar para a planilha online os dados deste aparelho?\n\n${local.linhagens.length} linhagens · ${local.pesquisadores.length} pesquisadores · ${local.tubos.length} criotubos`)) return;
+    const st = $("#onlineNotice");
+    try {
+      st.querySelector("span").textContent = "Enviando dados…";
+      const d = await api({ acao: "importar", senha: senha(), dados: { linhagens: local.linhagens.map((o) => toRow("linhagens", o)), pesquisadores: local.pesquisadores.map((o) => toRow("pesquisadores", o)), tubos: local.tubos.map((o) => toRow("tubos", o)) } });
+      db = fromServer(d);
+      snapshot = snap(db);
+      serverEmpty = false; ready = true;
+      const fotos = Object.entries(Photos.cache).filter(([id]) => db.linhagens.some((l) => l.id === id));
+      for (let i = 0; i < fotos.length; i++) {
+        st.querySelector("span").textContent = `Enviando fotos… ${i + 1} de ${fotos.length}`;
+        try { await uploadPhoto(fotos[i][0], fotos[i][1]); } catch (e) { /* segue com as outras */ }
+      }
+      snapshot = snap(db);
+      try { localStorage.setItem(KEY_ONLINE, JSON.stringify(db)); } catch (e) { /* ignora */ }
+      setSync("ok");
+      refreshAll();
+      alert("Pronto! Os dados agora estão na planilha online e aparecem em qualquer aparelho.");
+    } catch (err) {
+      alert("Não foi possível enviar: " + err.message);
+      setSync("vazio");
+    }
+  }
+
+  function renderOnlineNotice() {
+    const el = $("#onlineNotice");
+    if (!el) return;
+    if (ONLINE && serverEmpty) {
+      el.hidden = false;
+      el.innerHTML = canEdit()
+        ? `<b>A planilha online está vazia.</b><span>Envie os dados deste aparelho (linhagens, pesquisadores, criotubos e fotos) para começar a usar o banco compartilhado.</span><button type="button" class="btn-primary" id="btnImportar">Enviar dados para a planilha</button>`
+        : `<b>A planilha online está vazia.</b><span>Entre com a senha de usuário para enviar os dados.</span><button type="button" class="btn-primary" data-login>Entrar com senha</button>`;
+      const b = $("#btnImportar");
+      if (b) b.addEventListener("click", importar);
+    } else el.hidden = true;
+    const note = $("#dataNote");
+    if (note) note.innerHTML = ONLINE
+      ? `Dados salvos na <strong>Planilha Google</strong> do laboratório: todos os aparelhos veem as mesmas informações.`
+      : `Modo local: os dados ficam salvos <strong>neste navegador</strong>. Use “Baixar backup” para não perder nada.`;
+  }
+
 
   const inStock = () => db.tubos.filter((t) => !t.rem);
   const sortLines = (a, b) => a.linhagem.localeCompare(b.linhagem, "pt-BR", { sensitivity: "base" });
@@ -247,7 +484,8 @@
       async clear() { if (!canEdit()) return; Object.keys(cache).forEach((k) => delete cache[k]); await tx("readwrite", (s) => s.clear()); },
     };
   })();
-  const photoSrc = (l) => Photos.cache[l.id] || (isUrl(l.fotoUrl) ? l.fotoUrl : "");
+  const tmpPhotos = {}; // online: foto aparece na hora enquanto é enviada
+  const photoSrc = (l) => (ONLINE && ready ? tmpPhotos[l.id] : Photos.cache[l.id]) || (isUrl(l.fotoUrl) ? l.fotoUrl : "");
   function photoThumb(l) {
     const src = photoSrc(l);
     return src
@@ -399,6 +637,23 @@
     $("#lineSearch").value = ""; $("#lineFilter").value = "";
     const foto = pendingFoto;
     pendingFoto = undefined;
+    if (ONLINE && ready) {
+      const l = db.linhagens.find((x) => x.id === id);
+      if (foto === null && l) {
+        if (l.fotoId) api({ acao: "apagarFoto", senha: senha(), id }).catch(() => {});
+        l.fotoUrl = ""; l.fotoId = "";
+      }
+      if (foto) tmpPhotos[id] = foto; // mostra na hora enquanto envia
+      save();
+      flash(id);
+      if (foto) {
+        setSync("salvando");
+        uploadPhoto(id, foto)
+          .then(() => { delete tmpPhotos[id]; save(); })
+          .catch((err) => { alert("A foto não foi enviada: " + err.message); delete tmpPhotos[id]; refreshAll(); setSync("ok"); });
+      }
+      return;
+    }
     if (foto === null) Photos.del(id);
     else if (foto !== undefined) Photos.put(id, foto); // memória na hora; disco em segundo plano
     save();
@@ -987,6 +1242,11 @@
         const fotos = d.fotos || {};
         delete d.fotos;
         db = d;
+        if (ONLINE && ready) {
+          save();
+          Object.entries(fotos).reduce((p, [id, data]) => p.then(() => uploadPhoto(id, data).catch(() => {})), Promise.resolve()).then(save);
+          return;
+        }
         Photos.clear().then(() => Promise.all(Object.entries(fotos).map(([id, data]) => Photos.put(id, data)))).then(save);
       } catch (err) {
         alert("Arquivo de backup inválido.");
@@ -998,6 +1258,7 @@
   $("#btnResetSeed").addEventListener("click", () => {
     if (!confirm("Recarregar os dados da planilha? Tudo o que foi registrado aqui será perdido.")) return;
     db = fromSeed();
+    if (ONLINE) { save(); return; }
     Photos.clear().then(save);
   });
 
@@ -1014,6 +1275,7 @@
   }
   document.addEventListener("viewchange", (e) => {
     currentView = e.detail;
+    if (ONLINE && Date.now() - lastPull > 5000) setTimeout(() => pull(), 0); // busca novidades ao trocar de tela
     $$(".line-form").forEach((f) => (f.hidden = true));
     if (currentView !== "store") $("#storeDone").hidden = true;
     if (currentView !== "take") $("#takeDone").hidden = true;
@@ -1021,10 +1283,19 @@
   });
   document.addEventListener("click", (e) => { if (e.target.closest("[data-login]") && window.Auth) window.Auth.ask(); });
   if (window.Auth) window.Auth.onChange(() => {
+    renderOnlineNotice();
     $$(".line-form").forEach((f) => (f.hidden = true));
     editLotIdx = null; editHistIdx = null; openLot = null;
     refreshAll();
   });
   refreshAll();
   Photos.loadAll().then(refreshAll);
+  setSync(syncState);
+  if (ONLINE) {
+    pull(true);
+    setInterval(() => { if (document.visibilityState === "visible") pull(); }, 30000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Date.now() - lastPull > 5000) pull(); });
+    window.addEventListener("online", () => push());
+    window.addEventListener("beforeunload", (e) => { if (ready && diff().n) { e.preventDefault(); e.returnValue = ""; } });
+  }
 })();

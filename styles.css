@@ -651,6 +651,19 @@ body.no-scroll { overflow: hidden; }
 .mode-pill span { color: #b9cbbf; text-transform: none; letter-spacing: .02em; }
 .mode-pill:hover { background: rgba(255,255,255,.12); }
 
+.sync-pill { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 8px; letter-spacing: .1em; color: #b9cbbf; }
+.sync-pill i { width: 6px; height: 6px; border-radius: 50%; background: #9fb3a6; }
+.sync-pill.s-ok i { background: #8fd17a; }
+.sync-pill.s-salvando i, .sync-pill.s-carregando i { background: #d1a54b; animation: pulse 1s infinite; }
+.sync-pill.s-pendente i, .sync-pill.s-erro i { background: #e07a5f; }
+.sync-pill.s-vazio i { background: #d1a54b; }
+@keyframes pulse { 50% { opacity: .3; } }
+.online-notice { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; background: #f6ead2; border: 1px solid #e6d2a8; border-radius: 4px; padding: 14px 16px; margin-bottom: 14px; color: #6b4a14; }
+.online-notice[hidden] { display: none; }
+.online-notice b { font-size: 12px; }
+.online-notice span { font-size: 10px; }
+.online-notice .btn-primary { margin-top: 4px; }
+
 /* Modo visualização: esconde tudo que altera dados */
 .locked-note { display: none; }
 .app[data-mode="view"] .locked-note {
