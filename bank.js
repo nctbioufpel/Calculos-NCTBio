@@ -210,10 +210,10 @@
       salvando: "SALVANDO NA PLANILHA…",
       pendente: `SEM CONEXÃO · ${extra || ""} PENDENTE(S)`,
       vazio: "PLANILHA ONLINE VAZIA",
-      erro: "ERRO AO SALVAR",
+      erro: ready ? "ERRO AO SALVAR" : "ERRO AO LER A PLANILHA",
     }[s];
     el.className = "sync-pill mono s-" + s;
-    el.innerHTML = `<i></i>${txt}`;
+    el.innerHTML = `<i></i>${txt}` + (s === "erro" && extra ? `<small class="sync-err">${esc(extra)}</small>` : "");
     el.title = s === "local" ? "Configure a Planilha Google (config.js) para compartilhar os dados entre aparelhos." : (extra && s === "erro" ? extra : "");
     renderOnlineNotice();
   }
@@ -251,7 +251,12 @@
       }
       setSync("ok");
     } catch (err) {
-      setSync(ready ? "pendente" : "erro", ready ? diff().n : "Não foi possível ler a planilha: " + err.message);
+      const m = /JSON|Unexpected token|<!DOCTYPE/i.test(err.message)
+        ? "A planilha respondeu com uma página em vez de dados. Confira a implantação: Quem pode acessar = Qualquer pessoa."
+        : /Failed to fetch|NetworkError|Load failed/i.test(err.message)
+          ? "O navegador bloqueou a conexão com a planilha (verifique internet, bloqueadores ou o escudo do Brave)."
+          : err.message;
+      setSync(ready ? "pendente" : "erro", ready ? diff().n : m);
     }
   }
 
