@@ -452,8 +452,8 @@
           </div>
 
           <label class="field">
-            <span class="field-q">Qual volume em mL de solução celular disponível no falcon?</span>
-            <span class="field-line"><input class="num dec" id="cVol" inputmode="decimal" placeholder="—" /></span>
+            <span class="field-q">Qual volume de solução celular disponível no falcon?</span>
+            <span class="field-line"><input class="num dec" id="cVol" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
             <small>Informe o volume disponível no falcon.</small>
           </label>
 
@@ -498,24 +498,24 @@
 
           <label class="field">
             <span class="field-q">1. Quantas células você quer colocar por poço?</span>
-            <span class="field-line"><input class="num big-int" id="pCells" inputmode="numeric" placeholder="—" /><em>células</em></span>
+            <span class="field-line"><input class="num big-int" id="pCells" inputmode="numeric" placeholder="—" /><em class="u">células</em></span>
           </label>
 
           <label class="field">
             <span class="field-q">2. Em quantos poços você vai colocar células?</span>
-            <span class="field-line"><input class="num big-int" id="pWells" inputmode="numeric" placeholder="—" /><em>poços</em></span>
+            <span class="field-line"><input class="num big-int" id="pWells" inputmode="numeric" placeholder="—" /><em class="u">poços</em></span>
             <small class="italic">Será feito um cálculo com 15% a mais de poços para evitar que falte material.</small>
             <small class="factor" id="pFactor">Fator de correção (+15%): —</small>
           </label>
 
           <label class="field">
-            <span class="field-q">3. Qual o volume em mL para cada poço?</span>
-            <span class="field-line"><input class="num dec" id="pWellVol" inputmode="decimal" placeholder="—" /><em>mL</em></span>
+            <span class="field-q">3. Qual o volume para cada poço?</span>
+            <span class="field-line"><input class="num dec" id="pWellVol" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
           </label>
 
           <label class="field">
-            <span class="field-q">4. Qual o volume em mL da suspensão celular que você pretende fazer após centrifugar a solução com tripsina e aspirar o sobrenadante?</span>
-            <span class="field-line"><input class="num dec" id="pResusp" inputmode="decimal" placeholder="—" /><em>mL</em></span>
+            <span class="field-q">4. Qual o volume da solução-mãe (suspensão após centrifugação da solução com tripsina)?</span>
+            <span class="field-line"><input class="num dec" id="pResusp" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
           </label>
 
           <div class="plan">
@@ -529,19 +529,23 @@
               <b id="rNeed">—</b>
               <small id="rNeedF">Poços com fator de correção × células por poço.</small>
             </div>
+            <div class="plan-row emph">
+              <span>Você vai precisar de uma solução de trabalho com volume total de</span>
+              <b id="rWork">— <span class="unit">mL</span></b>
+              <small id="rWorkF">Poços com fator de correção × volume por poço.</small>
+            </div>
+          </div>
+
+          <div class="plan plan-prep">
+            <div class="prep-head mono">PREPARO DA SOLUÇÃO DE TRABALHO</div>
             <div class="plan-row">
-              <span>Você precisará deste volume em mL da solução-mãe (ressuspensão após centrifugação)</span>
-              <b id="rAliq">—</b>
+              <span><i class="step-ic">1</i>Você precisará deste volume da solução-mãe (ressuspensão após centrifugação)</span>
+              <b id="rAliq">— <span class="unit">mL</span></b>
               <small id="rAliqF">Células necessárias ÷ (células da solução-mãe ÷ volume de ressuspensão).</small>
             </div>
             <div class="plan-row">
-              <span>Você vai precisar de uma solução de trabalho com volume total em mL de</span>
-              <b id="rWork">—</b>
-              <small id="rWorkF">Poços com fator de correção × volume por poço.</small>
-            </div>
-            <div class="plan-row highlight">
-              <span>Então complete a alíquota da solução-mãe com meio de cultivo com esse volume em mL</span>
-              <b id="rMedium">—</b>
+              <span><i class="step-ic">2</i>Então adicione esse volume de meio à alíquota da solução-mãe para ter sua solução de trabalho</span>
+              <b id="rMedium">— <span class="unit">mL</span></b>
               <small id="rMediumF">Volume da solução de trabalho − alíquota da solução-mãe.</small>
             </div>
           </div>
@@ -627,8 +631,8 @@
 
           <div class="three-col">
             <label class="mini-box">
-              <span class="mb-title">Qual o volume em mL disponível no criotubo?</span>
-              <input class="num dec big-input" id="vVol" inputmode="decimal" placeholder="Ex.: 1,5" />
+              <span class="mb-title">Qual o volume disponível no criotubo?</span>
+              <span class="vol-line"><input class="num dec big-input" id="vVol" inputmode="decimal" placeholder="Ex.: 1,5" /><em class="u">mL</em></span>
               <small>Informe o volume para calcular o total de células para expansão.</small>
             </label>
             <div class="mini-box center">

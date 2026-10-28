@@ -322,11 +322,23 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 14px; border-bottom: 1px solid var(--tint-border);
 }
 .plan-row:last-child { border-bottom: 0; }
-.plan-row span { font-size: 10.5px; color: var(--ink); line-height: 1.4; }
+.plan-row > span { font-size: 10.5px; color: var(--ink); line-height: 1.4; }
 .plan-row b { font-family: var(--num); font-variant-numeric: oldstyle-nums; font-weight: 700; font-size: 20px; color: var(--ink); white-space: nowrap; text-align: right; }
 .plan-row small { grid-column: 1 / -1; font-family: var(--mono); font-size: 8.5px; color: var(--muted); letter-spacing: .02em; }
 .plan-row small sup, .plan-row b sup { font-size: .7em; }
 .plan-row.highlight { background: var(--mint); }
+/* resultado em destaque: volume da solução de trabalho */
+.plan-row.emph { background: #d3e3cd; }
+.plan-row.emph > span { font-weight: 600; font-size: 11.5px; }
+.plan-row.emph b { font-size: 24px; }
+/* grupo: preparo da solução de trabalho */
+.plan-prep { background: var(--mint); border: 1.5px solid #9fc796; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+.prep-head { background: var(--ink); color: #eef5ec; font-size: 9px; letter-spacing: .12em; padding: 8px 14px; }
+.plan-prep .plan-row { border-bottom-color: #b5d3ab; }
+.plan-prep .plan-row > span { font-weight: 600; font-size: 11.5px; display: flex; gap: 9px; align-items: flex-start; }
+.plan-prep .plan-row b { font-size: 24px; }
+.plan-prep .plan-row small { padding-left: 27px; color: #6c8a7c; }
+.step-ic { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: #eef5ec; font-style: normal; font-family: var(--mono); font-size: 9.5px; font-weight: 500; display: grid; place-items: center; margin-top: -1px; }
 
 .leftover { border-radius: 3px; padding: 16px 14px 12px; margin: 4px 0 10px; animation: fade .35s ease; }
 .leftover[hidden] { display: none; }
@@ -646,6 +658,7 @@ body.no-scroll { overflow: hidden; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
 .mode-pill {
+  white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 4px 9px; border-radius: 20px;
   font-size: 8.5px; letter-spacing: .1em; color: #e9efe9; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.05);
 }
@@ -780,3 +793,18 @@ body.no-scroll { overflow: hidden; }
   .search { min-width: 100%; order: 3; }
   .hero { font-size: 42px; }
 }
+
+/* ---------- Unidades (mL, células, poços) ---------- */
+/* a linha (sublinhado) fica no contêiner; o campo encolhe ao tamanho do número
+   e a unidade aparece logo ao lado dele */
+.field-line, .vol-line { display: flex; align-items: baseline; gap: 7px; border-bottom: 1px solid #b7c2bb; padding-bottom: 4px; }
+.field-line:focus-within, .vol-line:focus-within { border-bottom-color: var(--ink); }
+.field-line .num, .vol-line .num { flex: 0 1 auto; width: 3ch; max-width: 100%; border-bottom: 0; padding-bottom: 0; }
+.field-line em:not(.u) { margin-left: auto; margin-bottom: 0; align-self: flex-end; }
+.field-line em.u, .vol-line em.u {
+  font-family: var(--sans); font-style: normal; font-size: 16px; font-weight: 500; letter-spacing: 0;
+  color: var(--ink-soft); margin: 0; flex: none;
+}
+.vol-line { margin: 20px 0 6px; }
+.vol-line .big-input { margin: 0; }
+.unit { font-family: var(--sans); font-size: 16px; font-weight: 500; color: var(--ink-soft); letter-spacing: 0; margin-left: 3px; }

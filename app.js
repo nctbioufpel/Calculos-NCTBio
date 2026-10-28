@@ -152,6 +152,7 @@
     return d ? Number(d) : null;
   };
   const mL = (v) => `${fmtDec(v, 3)} mL`;
+  const UNIT = ' <span class="unit">mL</span>';
   const uL = (v) => `${fmtDec(v * 1000, 1)} µL`;
 
   function drawPlate(wells, corr) {
@@ -212,21 +213,21 @@
 
     // 3. alíquota da solução-mãe
     const aliq = need && stock && rv ? (need * rv) / stock : null;
-    $("#rAliq").textContent = aliq !== null ? mL(aliq) : "—";
+    $("#rAliq").innerHTML = (aliq !== null ? fmtDec(aliq, 3) : "—") + UNIT;
     $("#rAliqF").innerHTML = aliq !== null
       ? `${fmtInt(need)} ÷ (${fmtInt(stock)} ÷ ${fmtDec(rv, 3)} mL) = ${uL(aliq)} · concentração da solução-mãe: ${sci(stock / rv)} células/mL`
       : "Células necessárias ÷ (células da solução-mãe ÷ volume de ressuspensão).";
 
     // 4. volume da solução de trabalho
     const work = wc && wv ? wc * wv : null;
-    $("#rWork").textContent = work !== null ? mL(work) : "—";
+    $("#rWork").innerHTML = (work !== null ? fmtDec(work, 3) : "—") + UNIT;
     $("#rWorkF").textContent = work !== null
       ? `${fmtInt(wc)} poços × ${fmtDec(wv, 3)} mL`
       : "Poços com fator de correção × volume por poço.";
 
     // 5. meio de cultivo para completar
     const med = work !== null && aliq !== null ? work - aliq : null;
-    $("#rMedium").textContent = med !== null ? mL(Math.max(0, med)) : "—";
+    $("#rMedium").innerHTML = (med !== null ? fmtDec(Math.max(0, med), 3) : "—") + UNIT;
     $("#rMediumF").textContent = med !== null
       ? `${fmtDec(work, 3)} mL − ${fmtDec(aliq, 3)} mL`
       : "Volume da solução de trabalho − alíquota da solução-mãe.";
@@ -288,7 +289,23 @@
     })
   );
 
+  /* Campo do tamanho do número: a unidade (mL, células, poços) fica colada nele */
+  const meas = document.createElement("canvas").getContext("2d");
+  function fit(inp) {
+    if (!inp.closest(".field-line, .vol-line")) return;
+    const cs = getComputedStyle(inp);
+    meas.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const txt = inp.value || inp.placeholder || "0";
+    inp.style.width = Math.ceil(meas.measureText(txt).width + 6) + "px";
+  }
+  const fitAll = () => $$("input.num").forEach(fit);
+  document.addEventListener("input", (e) => { if (e.target.matches && e.target.matches("input.num")) fit(e.target); });
+  $$("[data-clear]").forEach((b) => b.addEventListener("click", fitAll));
+  document.addEventListener("viewchange", () => setTimeout(fitAll, 0));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
   calcCount();
   calcViab();
   calcPlate();
+  fitAll();
 })();
