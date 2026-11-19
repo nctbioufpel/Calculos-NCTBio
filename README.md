@@ -4,7 +4,7 @@ App web (HTML/CSS/JS puro, sem dependências) para contagem celular em hemocitô
 
 ## Publicar no GitHub Pages
 1. Crie um repositório no GitHub (ex.: `contagem-celular`).
-2. Envie os arquivos `index.html`, `styles.css`, `app.js`, `bank.js`, `data-seed.js`, `auth.js`, `config.js` e este `README.md` para a raiz do repositório (botão **Add file → Upload files**).
+2. Envie os arquivos `index.html`, `styles.css`, `app.js`, `bank.js`, `sub.js`, `data-seed.js`, `auth.js`, `config.js` e este `README.md` para a raiz do repositório (botão **Add file → Upload files**).
 3. Vá em **Settings → Pages**, em *Source* escolha **Deploy from a branch**, branch `main`, pasta `/ (root)` e salve.
 4. Em 1–2 minutos o app estará em `https://SEU-USUARIO.github.io/contagem-celular/`.
 

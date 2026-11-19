@@ -102,6 +102,12 @@
               <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
           </button>
+          <button class="option" data-go="sub">
+            <span>Subcultura e/ou criogenização de células</span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
           <button class="option" data-go="bank">
             <span>Acessar o Banco de Células</span>
             <span class="arrow" aria-hidden="true">
@@ -485,6 +491,150 @@
         <footer class="foot mono">USO EM BANCADA</footer>
       </section>
 
+      <!-- ---------- SUBCULTURA / CRIOGENIZAÇÃO ---------- -->
+      <section class="view view-sub">
+        <button class="back mono" data-go="home">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          início
+        </button>
+        <h2 class="page-title">Subcultura e/ou criogenização</h2>
+        <p class="page-sub">Conte as células e distribua a ressuspensão entre garrafas e criotubos.</p>
+
+        <div class="sub-grid">
+          <!-- ===== Coluna 1: contagem ===== -->
+          <div class="sub-col">
+            <h3 class="sub-h mono">1 · CONTAGEM POR QUADRANTE</h3>
+            <label class="field">
+              <span class="field-q">1. Quantas células você contou no 1º quadrante?</span>
+              <span class="field-line"><input class="num int" data-sc="0" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+            </label>
+            <label class="field">
+              <span class="field-q">2. Quantas células você contou no 2º quadrante?</span>
+              <span class="field-line"><input class="num int" data-sc="1" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+            </label>
+            <label class="field">
+              <span class="field-q">3. Quantas células você contou no 3º quadrante?</span>
+              <span class="field-line"><input class="num int" data-sc="2" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+            </label>
+            <label class="field">
+              <span class="field-q">4. Quantas células você contou no 4º quadrante?</span>
+              <span class="field-line"><input class="num int" data-sc="3" inputmode="numeric" placeholder="—" /><em>0–999</em></span>
+            </label>
+
+            <div class="results">
+              <div class="res-row"><span>Total de células contadas na câmara</span><b id="sTotal">—</b></div>
+              <div class="res-row"><span>Quadrantes contados</span><b id="sQuadC">0 quadrantes</b></div>
+              <div class="res-row"><span>Média de células</span><b id="sMean">—</b></div>
+            </div>
+
+            <label class="field">
+              <span class="field-q">Qual volume de solução celular disponível no falcon?</span>
+              <span class="field-line"><input class="num dec" id="sVol" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
+              <small>Informe o volume disponível no falcon.</small>
+            </label>
+
+            <div class="results">
+              <div class="res-row"><span>Células por mL <small>(média × 10.000)</small></span><b id="sPerMl">—</b></div>
+              <div class="res-row"><span>Total de células no falcon <small>(células/mL × volume)</small></span><b id="sTotFal">—</b></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-clear" data-clear-sub>
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Limpar campos
+              </button>
+              <span class="hint">Informe números inteiros de 0 a 999.</span>
+            </div>
+          </div>
+
+          <!-- ===== Coluna 2: distribuição ===== -->
+          <div class="sub-col">
+            <h3 class="sub-h mono">2 · DISTRIBUIÇÃO DA RESSUSPENSÃO</h3>
+            <div class="notice" id="subNotice">Complete a contagem (quadrantes e volume do falcon) para calcular a distribuição.</div>
+
+            <label class="field">
+              <span class="field-q">Qual o volume da ressuspensão celular (sem tripsina, após centrifugação)?</span>
+              <span class="field-line"><input class="num dec" id="sRes" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
+              <small id="sConc">Concentração da ressuspensão: —</small>
+            </label>
+
+            <!-- Garrafas -->
+            <div class="sub-block">
+              <div class="sb-head">
+                <span class="sb-title">Garrafas para subcultura</span>
+                <small>Pequena 6 mL · Média 10 mL · Grande 20 mL de meio</small>
+              </div>
+              <div id="flaskList"></div>
+              <button type="button" class="btn-clear sb-add" id="btnAddFlask">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Adicionar garrafa
+              </button>
+            </div>
+
+            <!-- Criotubos -->
+            <div class="sub-block">
+              <label class="sb-toggle">
+                <input type="checkbox" id="cryoOn" />
+                <span><b>Congelar o restante em criotubos</b><small>As garrafas têm prioridade; os criotubos recebem o que sobrar.</small></span>
+              </label>
+              <div id="cryoBox" hidden>
+                <div class="cryo-step" id="cryoStep">Transfira o restante da ressuspensão para um falcon, centrifugue e ressuspenda o pellet em meio de congelamento.</div>
+                <div class="cryo-cfg">
+                  <label class="field sm">
+                    <span class="field-q">Quantos criotubos?</span>
+                    <span class="field-line"><input class="num int" id="cryoN" inputmode="numeric" placeholder="—" /><em class="u">criotubos</em></span>
+                  </label>
+                  <div class="seg" role="radiogroup" aria-label="Volume dos criotubos">
+                    <button type="button" class="on" data-cmode="equal">Volumes iguais</button>
+                    <button type="button" data-cmode="custom">Volumes diferentes</button>
+                  </div>
+                </div>
+                <label class="field sm" id="cryoVolEq">
+                  <span class="field-q">Volume de meio de congelamento por criotubo</span>
+                  <span class="field-line"><input class="num" id="cryoVol" inputmode="decimal" placeholder="—" value="1,5" /><em class="u">mL</em></span>
+                </label>
+                <div id="cryoList"></div>
+
+                <!-- Armazenar no banco -->
+                <div class="store-cryo" id="storeCryo">
+                  <div class="sc-head"><b>Armazenar estes criotubos no Banco de Células</b><small>Densidade e volume já vêm do cálculo acima.</small></div>
+                  <div class="lf-grid">
+                    <label class="lf-field"><span>Linhagem *</span><select id="scLine"></select></label>
+                    <label class="lf-field"><span>Pesquisador *</span><select id="scPerson"></select></label>
+                    <label class="lf-field"><span>Passagem</span><input id="scPass" inputmode="numeric" placeholder="Ex.: 6" /></label>
+                    <label class="lf-field"><span>Canister *</span><select id="scCan"></select></label>
+                    <label class="lf-field"><span>Data do congelamento</span><input id="scDate" type="date" /></label>
+                    <label class="lf-field"><span>Observações</span><input id="scObs" placeholder="Opcional" /></label>
+                  </div>
+                  <div class="lf-actions">
+                    <button type="button" class="btn-primary" id="btnStoreCryo">Armazenar no botijão</button>
+                    <span class="lf-msg" id="scMsg"></span>
+                  </div>
+                  <div class="done" id="scDone" hidden></div>
+                  <div class="locked-note sc-lock">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <div><b>Modo visualização</b><span>Para armazenar no banco, entre com a senha de usuário.</span></div>
+                    <button type="button" class="btn-primary" data-login>Entrar com senha</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumo -->
+            <div class="plan plan-prep" id="subSummary">
+              <div class="prep-head mono">RESUMO DA DIVISÃO</div>
+              <div class="plan-row"><span>Total de células disponíveis</span><b id="sumTot">—</b><small id="sumTotF">Total de células no falcon.</small></div>
+              <div class="plan-row"><span>Células nas garrafas</span><b id="sumFl">—</b><small id="sumFlF"></small></div>
+              <div class="plan-row"><span>Células nos criotubos</span><b id="sumCr">—</b><small id="sumCrF"></small></div>
+              <div class="plan-row"><span>Ressuspensão que sobra no falcon</span><b id="sumLeft">— <span class="unit">mL</span></b><small id="sumLeftF"></small></div>
+            </div>
+            <div class="alert" id="subAlert" hidden></div>
+          </div>
+        </div>
+
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
       <!-- ---------- PLAQUEAMENTO ---------- -->
       <section class="view view-plate">
         <div class="topbar topbar-inline">
@@ -687,5 +837,6 @@
   <script src="data-seed.js"></script>
   <script src="bank.js"></script>
   <script src="app.js"></script>
+  <script src="sub.js"></script>
 </body>
 </html>

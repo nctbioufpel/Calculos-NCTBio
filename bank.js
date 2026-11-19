@@ -1288,6 +1288,29 @@
     Photos.clear().then(save);
   });
 
+  /* ================= API para outras telas (ex.: Subcultura) ================= */
+  window.Bank = {
+    canEdit,
+    ask: () => blocked(),
+    ready: () => !ONLINE || ready,
+    lines: () => db.linhagens.slice().sort(sortLines).map((l) => ({ nome: l.linhagem, ident: l.identificacao || "" })),
+    people: () => db.pesquisadores.slice().sort(sortPeople).map((p) => ({ nome: p.nome, tipo: p.tipo })),
+    stockByCan: () => stockBy("can"),
+    // tubos: [{can, lin, pass, dens, data, vol, pes, obs}] → retorna o id do lote ou null
+    addTubes(list) {
+      if (blocked()) return null;
+      if (ONLINE && !ready) { alert("Aguarde: carregando os dados da planilha online."); return null; }
+      const ev = "arm-" + uid(), now = new Date().toISOString();
+      list.forEach((t) => db.tubos.push({ id: uid(), rem: null, origem: "app", lote: ev, criadoEm: now, obs: "", ...t }));
+      save();
+      return ev;
+    },
+    undo(ev) {
+      db.tubos = db.tubos.filter((t) => !(t.lote === ev && !t.rem));
+      save();
+    },
+  };
+
   /* ================= Inicialização ================= */
   let currentView = "";
   function refreshAll() {
