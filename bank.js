@@ -967,6 +967,11 @@
         </div>
         <p class="ef-hint">Para corrigir só parte do lote, diminua a quantidade: os demais criotubos continuam com os dados atuais.</p>
         <div class="lf-actions"><button type="submit" class="btn-primary">Salvar alterações</button><button type="button" class="btn-clear" data-cancel-edit>Cancelar</button><span class="lf-msg"></span></div>
+        <div class="ef-danger">
+          <div class="efd-text"><b>Registro errado?</b><span>Use só para corrigir uma entrada feita por engano (ex.: registrou 4 criotubos, mas congelou 3). Os criotubos excluídos <u>não</u> entram no histórico de retiradas. Para tirar um criotubo do botijão, use “Retirar criotubo”.</span></div>
+          <label class="lf-field efd-qty"><span>Quantos excluir?</span><input name="qtdDel" type="number" min="1" max="${n}" value="1" /></label>
+          <button type="button" class="btn-danger" data-del-lot="${i}">Excluir registro</button>
+        </div>
       </form></td></tr>`;
   }
 
@@ -1029,6 +1034,22 @@
       if (f) f.scrollIntoView({ behavior: "smooth", block: "center" });
     }
     if (e.target.closest("[data-cancel-edit]")) { editLotIdx = null; renderDewar(); }
+    const del = e.target.closest("[data-del-lot]");
+    if (del) {
+      if (blocked()) return;
+      const lot = dwLots[+del.dataset.delLot];
+      if (!lot) return;
+      const f = del.closest("form"), msg = $(".lf-msg", f);
+      const n = lot.tubos.length;
+      const q = parseInt(f.elements.qtdDel.value, 10);
+      if (!q || q < 1 || q > n) { msg.textContent = `Informe de 1 a ${n} criotubos para excluir.`; return; }
+      const desc = `${lot.lin}${lot.pass ? " · P" + lot.pass : ""} · canister ${lot.can}${lot.data ? " · " + fmtDate(lot.data) : ""}`;
+      if (!confirm(`Excluir ${plural(q, "criotubo", "criotubos")} deste registro?\n\n${desc}\n\nUse apenas para entradas feitas por engano. Eles serão apagados do banco e não aparecerão no histórico de retiradas.`)) return;
+      const ids = new Set(lot.tubos.slice(-q).map((t) => t.id)); // remove os últimos registrados do lote
+      db.tubos = db.tubos.filter((t) => !ids.has(t.id));
+      if (q === n) editLotIdx = null;
+      save();
+    }
   });
   $("#canList").addEventListener("submit", (e) => {
     e.preventDefault();
