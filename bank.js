@@ -1296,6 +1296,13 @@
     lines: () => db.linhagens.slice().sort(sortLines).map((l) => ({ nome: l.linhagem, ident: l.identificacao || "" })),
     people: () => db.pesquisadores.slice().sort(sortPeople).map((p) => ({ nome: p.nome, tipo: p.tipo })),
     stockByCan: () => stockBy("can"),
+    linesByCan: () => {
+      const m = {};
+      inStock().forEach((t) => ((m[t.can] = m[t.can] || new Set()).add(t.lin)));
+      const out = {};
+      Object.keys(m).forEach((c) => (out[c] = [...m[c]].sort((a, b) => a.localeCompare(b, "pt-BR"))));
+      return out;
+    },
     // tubos: [{can, lin, pass, dens, data, vol, pes, obs}] → retorna o id do lote ou null
     addTubes(list) {
       if (blocked()) return null;

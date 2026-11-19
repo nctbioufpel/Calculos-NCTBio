@@ -250,8 +250,8 @@
     const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
     fillSel($("#scLine"), Bank.lines().map((l) => ({ v: l.nome, t: esc(l.nome + (l.ident ? " — " + l.ident : "")) })), "Selecione…");
     fillSel($("#scPerson"), Bank.people().map((p) => ({ v: p.nome, t: esc(p.nome + (p.tipo === "FORNECEDOR" ? " (fornecedor)" : "")) })), "Selecione…");
-    const st = Bank.stockByCan();
-    fillSel($("#scCan"), [1, 2, 3, 4, 5, 6].map((c) => ({ v: String(c), t: `Canister ${c} (${st[c] || 0} tubos)` })), "Selecione…");
+    const lc = Bank.linesByCan();
+    fillSel($("#scCan"), [1, 2, 3, 4, 5, 6].map((c) => ({ v: String(c), t: esc(`Canister ${c} — ${lc[c] && lc[c].length ? lc[c].join(", ") : "vazio"}`) })), "Selecione…");
     if (!$("#scDate").value) $("#scDate").value = today();
   }
   $("#scPass").addEventListener("input", (e) => (e.target.value = e.target.value.replace(/\D/g, "").slice(0, 3)));
