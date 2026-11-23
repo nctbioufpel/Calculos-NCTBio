@@ -869,12 +869,13 @@
       <div class="lot${isOpen ? " open" : ""}" data-lot="${esc(l.key)}">
         <div class="lot-head">
           <span class="lot-can mono">CAN ${l.can}</span>
-          <div class="lot-info"><b>${esc(l.lin)}</b><span>${lotLine(l)}</span></div>
+          <div class="lot-info"><b>${esc(l.lin)}${obsChip(l.tubos, `${l.lin} · canister ${l.can}`)}</b><span>${lotLine(l)}</span></div>
           <span class="lot-n"><b>${n}</b> disp.</span>
           <button type="button" class="btn-clear lot-btn" data-open-lot="${esc(l.key)}">${isOpen ? "Fechar" : "Retirar"}</button>
         </div>
         ${isOpen ? `
         <form class="lot-form" data-lot-form="${esc(l.key)}">
+          ${obsList(l.tubos).length ? `<div class="lot-obs full"><b>Observação:</b> ${obsList(l.tubos).map(esc).join(" · ")}</div>` : ""}
           <label class="lf-field"><span>Quantidade (máx. ${n})</span><input name="qtd" type="number" min="1" max="${n}" value="1" required /></label>
           <label class="lf-field"><span>Data da retirada</span><input name="data" type="date" value="${todayISO()}" /></label>
           <label class="lf-field"><span>Motivo</span><select name="motivo">${MOTIVOS.map((m) => `<option>${esc(m)}</option>`).join("")}</select></label>
@@ -992,7 +993,7 @@
         const i = dwLots.push(l) - 1;
         const obs = l.tubos.find((t) => t.obs);
         return `<tr${editLotIdx === i ? ' class="editing"' : ""}>
-          <td><b>${esc(l.lin)}</b>${obs ? ` <span class="obs-dot" title="${esc(obs.obs)}">obs</span>` : ""}</td><td>${l.pass !== "" && l.pass != null ? esc(l.pass) : "—"}</td>
+          <td><b>${esc(l.lin)}</b>${obsChip(l.tubos, `${l.lin} · canister ${l.can}`)}</td><td>${l.pass !== "" && l.pass != null ? esc(l.pass) : "—"}</td>
           <td>${l.dens ? sci(l.dens) : "—"}</td><td>${l.data ? fmtDate(l.data) : "—"}</td>
           <td>${l.vol ? fmtNum(l.vol) + " mL" : "—"}</td><td>${l.pes ? esc(firstName(l.pes)) : "—"}</td><td class="num">${l.tubos.length}</td>
           <td class="act"><button type="button" class="icon-btn sm" data-edit-lot="${i}" title="Editar lote" aria-label="Editar lote">${ICON_EDIT_SM}</button></td></tr>
@@ -1287,6 +1288,32 @@
     if (ONLINE) { save(); return; }
     Photos.clear().then(save);
   });
+
+  /* ================= Observações: chip clicável + janela ================= */
+  const obsList = (tubes) => [...new Set(tubes.map((t) => (t.obs || "").trim()).filter(Boolean))];
+  const obsChip = (tubes, label) => {
+    const o = obsList(tubes);
+    return o.length ? ` <button type="button" class="obs-dot" data-obs="${esc(JSON.stringify(o))}" data-obs-title="${esc(label)}" title="Ver observação" aria-label="Ver observação">obs</button>` : "";
+  };
+  const obsBox = document.createElement("div");
+  obsBox.className = "obs-modal"; obsBox.hidden = true;
+  obsBox.innerHTML = `<div class="obs-card" role="dialog" aria-modal="true"><div class="obs-head"><b></b><button type="button" class="lf-close" data-obs-close aria-label="Fechar">×</button></div><div class="obs-body"></div><button type="button" class="btn-primary" data-obs-close>Fechar</button></div>`;
+  document.body.appendChild(obsBox);
+  const closeObs = () => (obsBox.hidden = true);
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-obs]");
+    if (chip) {
+      e.preventDefault(); e.stopPropagation();
+      let list = [];
+      try { list = JSON.parse(chip.dataset.obs); } catch (err) { list = [chip.dataset.obs]; }
+      $("b", obsBox).textContent = "Observação · " + (chip.dataset.obsTitle || "");
+      $(".obs-body", obsBox).innerHTML = list.map((t) => `<p>${esc(t)}</p>`).join("");
+      obsBox.hidden = false;
+      return;
+    }
+    if (!obsBox.hidden && (e.target === obsBox || e.target.closest("[data-obs-close]"))) closeObs();
+  }, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !obsBox.hidden) closeObs(); });
 
   /* ================= API para outras telas (ex.: Subcultura) ================= */
   window.Bank = {
