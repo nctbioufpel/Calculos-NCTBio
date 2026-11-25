@@ -47,6 +47,7 @@
           <div class="plate-wells" id="plateWells"></div>
         </div>
         <span class="plate-label" id="plateLabel">PLACA DE CULTIVO</span>
+        <div class="plate-legend" id="plateLegend"></div>
       </div>
 
       <!-- Ilustração do botijão com canisters (banco de células) -->
@@ -671,6 +672,11 @@
             <small class="italic">Será feito um cálculo com 15% a mais de poços para evitar que falte material.</small>
             <small class="factor" id="pFactor">Fator de correção (+15%): —</small>
           </label>
+          <div class="field single-ctrl">
+            <label class="dg-chk"><input type="checkbox" id="pCtrlOn" /><span>Terá poços controle?</span></label>
+            <label class="dg-ctrl-n" id="pCtrlBox" hidden><span class="field-q">Quantos dos poços acima são controle?</span><span class="field-line"><input class="num big-int" id="pCtrl" inputmode="numeric" placeholder="—" /><em class="u">poços</em></span></label>
+            <small class="italic">Os controles já estão incluídos no número de poços: não mudam os cálculos, só aparecem no desenho da placa.</small>
+          </div>
 
           <label class="field">
             <span class="field-q">3. Qual o volume para cada poço?</span>
@@ -693,6 +699,42 @@
             <span class="field-q"><span class="pm-num">4. </span>Qual o volume da solução-mãe (suspensão após centrifugação da solução com tripsina)?</span>
             <span class="field-line"><input class="num dec" id="pResusp" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
           </label>
+
+          <!-- Placa: formato e PBS -->
+          <div class="pcfg">
+            <div class="pcfg-row">
+              <label class="lf-field pcfg-fmt"><span>Formato da placa</span>
+                <select id="pfFormat">
+                  <option value="auto">Automático (menor placa que comporta)</option>
+                  <option value="6">6 poços</option><option value="12">12 poços</option><option value="24">24 poços</option>
+                  <option value="48">48 poços</option><option value="96">96 poços</option>
+                </select>
+              </label>
+              <div class="pcfg-pbs">
+                <span class="pm-label">PBS</span>
+                <div class="seg sm" id="pfPbsMode">
+                  <button type="button" data-pbs="none">Sem PBS</button>
+                  <button type="button" class="on" data-pbs="edge">Todas as bordas</button>
+                  <button type="button" data-pbs="custom">Escolher linhas/colunas</button>
+                </div>
+              </div>
+            </div>
+            <div class="pcfg-custom" id="pfCustom" hidden>
+              <div class="pc-line"><span class="pm-label">Colunas com PBS</span><div class="chips-sel" id="pfCols"></div></div>
+              <div class="pc-line"><span class="pm-label">Linhas com PBS</span><div class="chips-sel" id="pfRows"></div></div>
+            </div>
+            <div class="pc-line pc-layout" hidden><span class="pm-label">Colunas das densidades</span>
+              <div class="seg sm" id="pfLayout">
+                <button type="button" class="on" data-lay="seq">Em sequência (A A B B)</button>
+                <button type="button" data-lay="alt">Alternadas (A B A B)</button>
+                <button type="button" data-lay="gap">Coluna vazia entre densidades</button>
+              </div>
+            </div>
+            <div class="pc-line pc-ctrl" hidden><span class="pm-label">Colunas dos controles</span><div class="chips-sel ctrl" id="pfCtrlCols"></div><small class="pc-hint">Nenhuma marcada = automático (antes dos testes de cada densidade).</small></div>
+            <div class="pc-line pc-blank"><span class="pm-label">Colunas com Blank</span><div class="chips-sel blank" id="pfBlank"></div></div>
+            <small class="pcfg-note" id="pfNote">O desenho da placa ao lado mostra a distribuição dos poços.</small>
+          </div>
+
 
           <div class="pm-single">
           <div class="plan">
@@ -877,5 +919,6 @@
   <script src="app.js"></script>
   <script src="sub.js"></script>
   <script src="plate.js"></script>
+  <script src="plate-map.js"></script>
 </body>
 </html>

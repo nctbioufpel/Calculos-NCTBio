@@ -37,7 +37,7 @@
   }
   const LET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  let groups = [{ cells: "", wells: "", vol: "" }, { cells: "", wells: "", vol: "" }];
+  let groups = [{ cells: "", wells: "", vol: "", ctrl: "" }, { cells: "", wells: "", vol: "", ctrl: "" }];
 
   /* ---------- modo ---------- */
   function setMode(m) {
@@ -63,12 +63,16 @@
           <label class="dg-f"><span class="field-q">Nº de poços</span><span class="field-line"><input class="num" data-dg="wells" inputmode="numeric" placeholder="—" value="${esc(g.wells)}" /><em class="u">poços</em></span></label>
         </div>
         <small class="factor dg-fac" id="dgFac${i}"></small>
+        <div class="dg-ctrl">
+          <label class="dg-chk"><input type="checkbox" data-dgctrl ${g.ctrl !== "" ? "checked" : ""} /><span>Terá poços controle nesta densidade?</span></label>
+          <label class="dg-f dg-ctrl-n" ${g.ctrl === "" ? "hidden" : ""}><span class="field-q">Quantos dos poços acima são controle?</span><span class="field-line"><input class="num" data-dg="ctrl" inputmode="numeric" placeholder="—" value="${esc(g.ctrl === "-" ? "" : g.ctrl)}" /><em class="u">poços</em></span></label>
+        </div>
       </div>`).join("");
     $$("#dgList input").forEach(fit);
   }
   $("#btnAddDg").addEventListener("click", () => {
     if (groups.length >= 8) return;
-    groups.push({ cells: "", wells: "", vol: "" });
+    groups.push({ cells: "", wells: "", vol: "", ctrl: "" });
     render(); calc();
     const last = $$("#dgList .dg").pop(); if (last) $("input", last).focus();
   });
@@ -76,12 +80,23 @@
     const d = e.target.closest("[data-dgdel]");
     if (d) { groups.splice(+d.dataset.dgdel, 1); render(); calc(); }
   });
+  $("#dgList").addEventListener("change", (e) => {
+    const cb = e.target.closest("[data-dgctrl]");
+    if (!cb) return;
+    const i = +cb.closest(".dg").dataset.i;
+    groups[i].ctrl = cb.checked ? "-" : "";      // "-" = marcado, ainda sem número
+    const box = $(".dg-ctrl-n", cb.closest(".dg"));
+    box.hidden = !cb.checked;
+    if (cb.checked) { const inp = $("input", box); inp.value = ""; fit(inp); inp.focus(); }
+    calc();
+    if (window.PlateMap) window.PlateMap.update();
+  });
   $("#dgList").addEventListener("input", (e) => {
     const inp = e.target.closest("[data-dg]");
     if (!inp) return;
     const k = inp.dataset.dg;
     inp.value = k === "vol" ? cleanDec(inp.value) : cleanBig(inp.value);
-    groups[+inp.closest(".dg").dataset.i][k] = inp.value;
+    groups[+inp.closest(".dg").dataset.i][k] = k === "ctrl" ? (inp.value || "-") : inp.value;
     fit(inp); calc();
   });
 
@@ -171,11 +186,13 @@
   $("#pResusp").addEventListener("input", calc);
   document.addEventListener("stockchange", calc);
   $$("[data-clear='plate']").forEach((b) => b.addEventListener("click", () => {
-    groups = [{ cells: "", wells: "", vol: "" }, { cells: "", wells: "", vol: "" }];
+    groups = [{ cells: "", wells: "", vol: "", ctrl: "" }, { cells: "", wells: "", vol: "", ctrl: "" }];
     render(); calc();
   }));
   document.addEventListener("viewchange", (e) => { if (e.detail === "plate") setTimeout(() => { $$("#dgList input").forEach(fit); calc(); }, 0); });
 
+  // usado pelo mapa da placa
+  window.PlateGroups = () => groups.map((g, i) => ({ L: LET[i], cells: bigOf(g.cells), wells: bigOf(g.wells), vol: decOf(g.vol), ctrl: bigOf(g.ctrl) || 0 }));
   view.dataset.pmode = "single";
   render();
 })();

@@ -158,6 +158,7 @@
   const uL = (v) => `${fmtDec(v * 1000, 1)} µL`;
 
   function drawPlate(wells, corr) {
+    if (window.PlateMap) return window.PlateMap.update(); // mapa da placa (plate-map.js)
     let rows, cols, name;
     const n = wells || 0;
     if (n <= 6) { rows = 2; cols = 3; name = "PLACA DE 6 POÇOS"; }
