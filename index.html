@@ -650,6 +650,16 @@
         <div class="count-col">
           <div class="notice" id="pNotice">Complete a contagem (quadrantes e volume do falcon) na tela anterior para usar o total de células da solução-mãe.</div>
 
+          <div class="pm-toggle">
+            <span class="pm-label">Densidade de células por poço</span>
+            <div class="seg" role="radiogroup" aria-label="Modo de plaqueamento">
+              <button type="button" class="on" data-pmode="single">Uma densidade</button>
+              <button type="button" data-pmode="multi">Várias densidades · diluição seriada</button>
+            </div>
+          </div>
+
+          <div class="pm-single">
+
           <label class="field">
             <span class="field-q">1. Quantas células você quer colocar por poço?</span>
             <span class="field-line"><input class="num big-int" id="pCells" inputmode="numeric" placeholder="—" /><em class="u">células</em></span>
@@ -667,11 +677,24 @@
             <span class="field-line"><input class="num dec" id="pWellVol" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
           </label>
 
+          </div>
+
+          <div class="pm-multi">
+            <p class="pm-intro">Cadastre cada densidade (células e volume por poço, número de poços). O app ordena da mais concentrada para a menos concentrada: a primeira solução é feita a partir da solução-mãe e cada uma das seguintes a partir da anterior.</p>
+            <div id="dgList"></div>
+            <button type="button" class="btn-clear sb-add" id="btnAddDg">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Adicionar densidade
+            </button>
+            <small class="italic pm-note">Em cada densidade é feito um cálculo com 15% a mais de poços para evitar que falte material.</small>
+          </div>
+
           <label class="field">
-            <span class="field-q">4. Qual o volume da solução-mãe (suspensão após centrifugação da solução com tripsina)?</span>
+            <span class="field-q"><span class="pm-num">4. </span>Qual o volume da solução-mãe (suspensão após centrifugação da solução com tripsina)?</span>
             <span class="field-line"><input class="num dec" id="pResusp" inputmode="decimal" placeholder="—" /><em class="u">mL</em></span>
           </label>
 
+          <div class="pm-single">
           <div class="plan">
             <div class="plan-row">
               <span>Lembre que você tem essa quantidade de células na solução-mãe</span>
@@ -714,6 +737,21 @@
           </div>
 
           <div class="alert" id="pAlert" hidden></div>
+          </div>
+
+          <div class="pm-multi">
+            <div class="plan">
+              <div class="plan-row"><span>Lembre que você tem essa quantidade de células na solução-mãe</span><b id="mStock">—</b><small id="mStockF">Total de células contadas na etapa anterior.</small></div>
+              <div class="plan-row"><span>Total de células para plaquear todas as densidades</span><b id="mNeed">—</b><small id="mNeedF">Soma das células de todas as soluções de trabalho.</small></div>
+            </div>
+            <div class="plan plan-prep">
+              <div class="prep-head mono">DILUIÇÃO SERIADA · SIGA A ORDEM</div>
+              <div class="ds-rule">Em cada solução: <b>retire primeiro a alíquota para a próxima solução, depois plaqueie.</b> Homogeneíze a suspensão antes de cada etapa.</div>
+              <div id="dgSteps"><div class="plan-row"><span>Preencha as densidades e o volume da solução-mãe para ver o preparo.</span></div></div>
+            </div>
+            <div class="leftover" id="mLeft" hidden><p class="lo-title" id="mLeftTitle"></p><div class="lo-row"><span>Células que sobram após o plaqueamento</span><b id="mLeftVal">—</b></div><small id="mLeftF"></small></div>
+            <div class="alert" id="mAlert" hidden></div>
+          </div>
 
           <div class="actions">
             <button class="btn-clear" data-clear="plate">
@@ -838,5 +876,6 @@
   <script src="bank.js"></script>
   <script src="app.js"></script>
   <script src="sub.js"></script>
+  <script src="plate.js"></script>
 </body>
 </html>

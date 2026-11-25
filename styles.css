@@ -924,3 +924,47 @@ button.obs-dot:hover { background: #dbe7f3; }
 .obs-card .btn-primary { align-self: flex-end; }
 .lot-obs { grid-column: 1 / -1; font-size: 10.5px; color: #23497a; background: #e8f0f8; border: 1px solid #c7d7ea; border-radius: 3px; padding: 8px 10px; line-height: 1.45; }
 .lot-obs b { font-weight: 600; }
+
+/* ================= PLAQUEAMENTO · VÁRIAS DENSIDADES ================= */
+.pm-toggle { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 12px; }
+.pm-label { font-size: 9px; color: var(--ink-soft); letter-spacing: .02em; }
+.pm-toggle .seg { align-self: flex-start; flex-wrap: wrap; border-radius: 4px; }
+.view-plate[data-pmode="single"] .pm-multi,
+.view-plate[data-pmode="multi"] .pm-single,
+.view-plate[data-pmode="multi"] .pm-num { display: none; }
+.pm-intro { font-size: 10px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 10px; }
+.pm-note { display: block; font-size: 8.5px; color: var(--ink-soft); margin: 8px 0 12px; }
+.dg { background: var(--card); border: 1px solid var(--card-border); border-radius: 3px; padding: 12px 14px; margin-bottom: 8px; }
+.dg-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dg-tag { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #eef5ec; font-family: var(--mono); font-size: 10px; display: grid; place-items: center; flex: none; }
+.dg-name { font-family: var(--serif); font-size: 18px; color: var(--ink); }
+.dg-conc { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.dg-conc sup { font-size: .75em; }
+.dg-del { margin-left: auto; font-size: 16px; line-height: 1; }
+.dg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.dg-f { display: block; cursor: text; min-width: 0; }
+.dg-f .field-q { font-size: 10px; }
+.dg-f .field-line { margin-top: 8px; }
+.dg-f .num { font-size: 19px; }
+.dg-fac { display: block; margin-top: 6px; font-family: var(--mono); font-size: 9px; color: var(--ink); min-height: 1px; }
+.ds { border-bottom: 2px solid #b5d3ab; }
+.ds:last-child { border-bottom: 0; }
+.ds-head { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px 4px; }
+.ds-head .step-ic { margin-top: 2px; }
+.ds-head b { display: block; font-size: 12.5px; color: var(--ink); }
+.ds-head span { font-size: 9.5px; color: var(--ink-soft); }
+.ds-head sup { font-size: .75em; }
+.ds .plan-row { padding-left: 41px; }
+.ds .plan-row > span { font-weight: 500 !important; font-size: 11px !important; display: block !important; }
+.ds .plan-row small { padding-left: 0 !important; }
+.ds .ds-use { background: #c4dcbb; }
+.ds .ds-use > span { font-weight: 600 !important; }
+@media (max-width: 520px) {
+  .dg-grid { grid-template-columns: 1fr; gap: 8px; }
+  .ds .plan-row { padding-left: 14px; }
+}
+.ds .plan-row > span strong { font-weight: 700; color: var(--ink); }
+.ds-rule { font-size: 10.5px; color: #6b4a14; background: #f6ead2; border-bottom: 1px solid #e6d2a8; padding: 9px 14px; line-height: 1.45; }
+.ds-rule b { font-weight: 600; }
+.ds .ds-first { background: #f3ead0; }
+.ds .ds-first > span strong { color: #6b4a14; }

@@ -79,8 +79,10 @@
     // compartilha com a tela de plaqueamento
     state.stockCells = tot && tot > 0 ? tot : null;
     if (typeof calcPlate === "function") calcPlate();
+    document.dispatchEvent(new Event("stockchange"));
   }
   const state = { stockCells: null };
+  window.PlateStock = () => state.stockCells;
   [...cInputs, cVol].forEach((i) => i.addEventListener("input", calcCount));
 
   /* ---------------- Viabilidade ---------------- */
@@ -277,17 +279,19 @@
     })
   );
 
-  /* Enter avança para o próximo campo (útil em bancada) */
-  $$("input.num").forEach((inp) =>
-    inp.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const all = $$(".view:not([style*='none']) input.num").filter((i) => i.offsetParent);
-      const idx = all.indexOf(inp);
-      if (idx > -1 && all[idx + 1]) all[idx + 1].focus();
-      else inp.blur();
-    })
-  );
+  /* Enter avança para o próximo campo (útil em bancada).
+     Delegado no documento: vale também para campos criados depois
+     (densidades do plaqueamento, garrafas e criotubos da subcultura). */
+  document.addEventListener("keydown", (e) => {
+    const inp = e.target;
+    if (e.key !== "Enter" || !inp.matches || !inp.matches("input.num")) return;
+    e.preventDefault();
+    const scope = inp.closest(".view") || document;
+    const all = $$("input.num", scope).filter((i) => i.offsetParent && !i.disabled);
+    const idx = all.indexOf(inp);
+    if (idx > -1 && all[idx + 1]) { all[idx + 1].focus(); all[idx + 1].select && all[idx + 1].select(); }
+    else inp.blur();
+  });
 
   /* Campo do tamanho do número: a unidade (mL, células, poços) fica colada nele */
   const meas = document.createElement("canvas").getContext("2d");
