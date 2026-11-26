@@ -146,17 +146,40 @@
     const hasCtl = gs.some((g) => g.ctrl); const pcc = $(".pc-ctrl"); if (pcc) pcc.hidden = !hasCtl;
 
     const [R, C] = FORMATS[f];
-    box.style.gridTemplateColumns = `repeat(${C}, 1fr)`;
-    let html = "";
+    // grade com identificação de colunas (1–12) e linhas (A–H) e legenda dentro dos poços
+    box.style.gridTemplateColumns = `14px repeat(${C}, 1fr)`;
+    box.className = "plate-wells f" + f;
+    const abbr = (c, g) => {
+      const n = (colNames[c + 1] || "").trim();
+      if (n) { const d = n.match(/\d+/); return d ? d[0] : n.slice(0, 2); }
+      return multi && g ? g.key : "";
+    };
+    let html = `<span></span>` + Array.from({ length: C }, (_, c) => `<span class="pl-lab">${c + 1}</span>`).join("");
     for (let i = 0; i < R * C; i++) {
       const r = Math.floor(i / C), c = i % C;
+      if (c === 0) html += `<span class="pl-lab">${"ABCDEFGH"[r]}</span>`;
       const m = res.map[i], g = m && m.g;
-      if (m) html += `<span class="well on${m.ctl ? " ctl" : ""}"${g.color ? ` style="--c:${g.color}"` : ""}></span>`;
+      if (m) html += `<span class="well on${m.ctl ? " ctl" : ""}"${g.color ? ` style="--c:${g.color}"` : ""}>${m.ctl ? "CC" : abbr(c, g)}</span>`;
       else if (isPbs(f, r, c)) html += `<span class="well pbs"></span>`;
-      else if (isBlank(f, r, c)) html += `<span class="well blank"></span>`;
+      else if (isBlank(f, r, c)) html += `<span class="well blank">B</span>`;
       else html += `<span class="well"></span>`;
     }
     box.innerHTML = html;
+
+    // mapa poço a poço (salvo no histórico) + nomes das amostras por coluna
+    const wells = [];
+    const testCols = new Map();   // nº da coluna -> densidade
+    for (let i = 0; i < R * C; i++) {
+      const r = Math.floor(i / C), c = i % C, id = "ABCDEFGH"[r] + (c + 1);
+      const m = res.map[i];
+      if (m && m.ctl) wells.push({ id, t: "ctl", g: m.g.key || "" });
+      else if (m) { wells.push({ id, t: "cell", g: m.g.key || "", c: c + 1 }); if (!testCols.has(c + 1)) testCols.set(c + 1, m.g.key || ""); }
+      else if (isPbs(f, r, c)) wells.push({ id, t: "pbs" });
+      else if (isBlank(f, r, c)) wells.push({ id, t: "blank" });
+      else wells.push({ id, t: "empty" });
+    }
+    lastMap = { f, R, C, wells, multi };
+    renderNames(testCols, multi);
 
     const missing = total - res.placed;
     $("#plateLabel").textContent = total
@@ -230,7 +253,48 @@
   });
 
   // "Limpar campos" também volta a placa ao padrão
+  /* ---------- nomes das amostras (por coluna) ---------- */
+  let lastMap = null;
+  const colNames = {};          // nº da coluna -> "Amostra 1"
+  let namesSig = "";
+  function renderNames(testCols, multi) {
+    const box = $("#pfNames");
+    if (!box) return;
+    const sig = [...testCols].map(([c, g]) => c + g).join(",");
+    $(".pc-names").hidden = !testCols.size;
+    if (sig === namesSig) return;   // não redesenha enquanto digita
+    namesSig = sig;
+    box.innerHTML = [...testCols].map(([c, g]) => `
+      <label class="nm-item"><span class="nm-col">Col. ${c}${multi && g ? ` · ${g}` : ""}</span>
+        <input data-ncol="${c}" placeholder="Ex.: Amostra 1" value="${(colNames[c] || "").replace(/"/g, "&quot;")}" /></label>`).join("");
+  }
+  function autoNames() {
+    if (!lastMap) return;
+    const cols = [...new Set(lastMap.wells.filter((w) => w.t === "cell").map((w) => w.c))].sort((a, b) => a - b);
+    // numera Amostra 1, 2, 3… e recomeça a cada densidade (ou a cada bloco separado por controle/blank)
+    let n = 0, prevG = null, prevC = null;
+    cols.forEach((c) => {
+      const g = lastMap.wells.find((w) => w.c === c).g;
+      const gap = prevC !== null && lastMap.wells.some((w) => { const wc = +w.id.slice(1); return wc > prevC && wc < c && (w.t === "ctl" || w.t === "blank"); });
+      if (g !== prevG || gap) n = 0;
+      colNames[c] = `Amostra ${++n}`;
+      prevG = g; prevC = c;
+    });
+    namesSig = ""; render();
+  }
+  document.addEventListener("input", (e) => { const i = e.target.closest && e.target.closest("[data-ncol]"); if (i) { colNames[+i.dataset.ncol] = i.value; render(); } });
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#pfAutoNames")) autoNames();
+    if (e.target.closest("#pfClearNames")) { Object.keys(colNames).forEach((k) => delete colNames[k]); namesSig = ""; render(); }
+  });
+  // usado pelo histórico: mapa completo da placa
+  window.PlateMapData = () => {
+    if (!lastMap || !lastMap.wells.some((w) => w.t === "cell" || w.t === "ctl")) return null;
+    return { f: lastMap.f, R: lastMap.R, C: lastMap.C, wells: lastMap.wells.map((w) => (w.t === "cell" ? { ...w, s: (colNames[w.c] || "").trim() } : w)) };
+  };
+
   function resetPlate() {
+    Object.keys(colNames).forEach((k) => delete colNames[k]); namesSig = "";
     if ($("#pfFormat")) $("#pfFormat").value = "auto";
     pbsMode = "edge";
     pbsCols.clear(); pbsCols.add(1); pbsCols.add(12);

@@ -133,7 +133,7 @@
   function toRow(col, o) {
     if (col === "historico") {
       return { id: o.id, type: o.type || "", ts: o.ts || "", data: o.data || "", lin: o.lin || "", pes: o.pes || "", pass: o.pass || "", obs: o.obs || "",
-        summary: JSON.stringify(o.summary || []), details: JSON.stringify(o.details || []) };
+        summary: JSON.stringify(o.summary || []), details: JSON.stringify(o.map ? [...(o.details || []), ["__map__", o.map]] : (o.details || [])) };
     }
     if (col !== "tubos") {
       const r = {};
@@ -172,7 +172,12 @@
     });
     const clean = (arr) => (arr || []).map((o) => { const x = {}; Object.keys(o).forEach((k) => { if (o[k] !== "") x[k] = o[k]; }); return x; });
     const pj = (x) => { try { return JSON.parse(x || "[]"); } catch (e) { return []; } };
-    const historico = (d.historico || []).map((r) => ({ id: r.id, type: r.type, ts: r.ts, data: r.data, lin: r.lin || "", pes: r.pes || "", pass: r.pass || "", obs: r.obs || "", summary: pj(r.summary), details: pj(r.details) }));
+    const historico = (d.historico || []).map((r) => {
+      const det = pj(r.details), mi = det.findIndex((x) => x && x[0] === "__map__");
+      const rec = { id: r.id, type: r.type, ts: r.ts, data: r.data, lin: r.lin || "", pes: r.pes || "", pass: r.pass || "", obs: r.obs || "", summary: pj(r.summary), details: mi >= 0 ? det.filter((_, i) => i !== mi) : det };
+      if (mi >= 0) rec.map = det[mi][1];
+      return rec;
+    });
     return { versao: SEED.versao, linhagens: clean(d.linhagens), pesquisadores: clean(d.pesquisadores), tubos, historico };
   }
   function snap(d) {

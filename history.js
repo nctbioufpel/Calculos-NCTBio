@@ -67,6 +67,7 @@
     D.push(["Contagem", null], ["Quadrantes", q.join(" · ")], ["Total contado na câmara", t("#cTotal")], ["Média", t("#cMean")],
       ["Volume no falcon", v("#cVol") ? v("#cVol") + " mL" : "—"], ["Células por mL", t("#cPerMl")], ["Total de células no falcon", t("#cTotFal")]);
   }
+  let plateMap = null;
   const COLLECT = {
     count() {
       if (!has(t("#cTotFal"))) return { err: "Complete a contagem (quadrantes e volume do falcon) antes de salvar." };
@@ -100,6 +101,7 @@
       D.push(["Placa", null], ["Formato", t("#plateLabel")], ["Detalhes", t("#plateLegend") || "—"]);
       const lu = window.PlateLeftUse ? window.PlateLeftUse() : [];
       if (lu.length) D.push(["Divisão das células que sobram", null], ...lu);
+      plateMap = window.PlateMapData ? window.PlateMapData() : null;
       return { D, S };
     },
     viab() {
@@ -169,7 +171,9 @@
       if (window.Auth) window.Auth.ask();
       return;
     }
+    plateMap = null;
     const r = COLLECT[type]();
+    r.map = plateMap;
     if (r.err) { toast(r.err, true); return; }
     pending = { type, ...r };
     $("#hsTitle").textContent = `Salvar ${TYPES[type].toLowerCase()} no histórico`;
@@ -198,6 +202,7 @@
       lin: $("#hrLine").value, pes: $("#hrPerson").value, pass: $("#hrPass").value, obs: $("#hrObs").value.trim(),
       summary: pending.S, details: pending.D,
     };
+    if (pending.map) rec.map = pending.map;
     if (!addRec(rec)) return;
     closeSave();
     render();
@@ -215,6 +220,31 @@
   /* ---------- tela do histórico ---------- */
   let tab = "";
   const open = new Set();
+  // mini-mapa da placa salvo no registro
+  function mapHtml(m) {
+    const COL = { A: "#cfe6c8", B: "#9cc3ec", C: "#f0c987", D: "#d5b3f0", E: "#8fd9d2", F: "#f2a7bd", G: "#d8e08a", H: "#e3e3e3" };
+    const lab = { ctl: "Controle", pbs: "PBS", blank: "Blank", empty: "Vazio" };
+    const cells = m.wells.map((w) => {
+      const tip = w.t === "cell" ? `${w.id} · ${w.s || "Amostra"}${w.g ? " · densidade " + w.g : ""}` : `${w.id} · ${lab[w.t]}`;
+      const ab = w.t === "cell" ? (w.s ? (w.s.match(/\d+/) || [w.s[0]])[0] : "") : w.t === "ctl" ? "CC" : w.t === "blank" ? "B" : "";
+      return `<span class="mw t-${w.t}" title="${esc(tip)}"${w.t === "cell" || w.t === "ctl" ? ` style="--c:${COL[w.g] || "#cfe6c8"}"` : ""}>${esc(ab)}</span>`;
+    }).join("");
+    // legenda por coluna
+    const cols = [];
+    for (let c = 1; c <= m.C; c++) {
+      const ws = m.wells.filter((w) => +w.id.slice(1) === c);
+      const cnt = {}; ws.forEach((w) => (cnt[w.t] = (cnt[w.t] || 0) + 1));
+      const main = Object.keys(cnt).filter((k) => k !== "pbs" && k !== "empty").sort((a, b) => cnt[b] - cnt[a])[0];
+      if (!main) continue;
+      const w0 = ws.find((w) => w.t === main);
+      const name = main === "cell" ? (w0.s || "Amostra") : lab[main];
+      cols.push(`<span><b>${c}</b> ${esc(name)}${w0.g ? ` <em>(${esc(w0.g)})</em>` : ""} · ${cnt[main]} poços</span>`);
+    }
+    return `<div class="hmap"><div class="hmap-title mono">MAPA DA PLACA · ${m.f} POÇOS</div>
+      <div class="hmap-grid" style="--cols:${m.C}"><span></span>${Array.from({ length: m.C }, (_, i) => `<span class="ml">${i + 1}</span>`).join("")}
+      ${Array.from({ length: m.R }, (_, r) => `<span class="ml">${"ABCDEFGH"[r]}</span>` + cells.split("</span>").slice(r * m.C, r * m.C + m.C).map((x) => x + "</span>").join("")).join("")}</div>
+      <div class="hmap-leg">${cols.join("")}</div></div>`;
+  }
   function renderNote() {
     const note = $("#hNote");
     if (!note) return;
@@ -254,6 +284,7 @@
         </div>
         ${isOpen ? `
         <div class="hrec-body">
+          ${r.map ? mapHtml(r.map) : ""}
           <dl>${r.details.map(([k, val]) => (val === null ? `<dt class="sec">${esc(k)}</dt>` : `<dt>${esc(k)}</dt><dd>${esc(val || "—")}</dd>`)).join("")}</dl>
           <div class="hrec-actions"><button type="button" class="btn-danger sm" data-hdel="${r.id}"><span class="lock-ic" aria-hidden="true">🔒</span>Excluir registro</button></div>
         </div>` : ""}

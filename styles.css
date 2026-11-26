@@ -1109,3 +1109,38 @@ b small.raw { padding-left: 0 !important; display: inline !important; grid-colum
 .app[data-mode="view"] .btn-save::after { content: "🔒"; font-size: 11px; margin-left: 2px; }
 .app[data-mode="view"] .btn-save, .app[data-mode="view"] [data-hdel] { opacity: .8; }
 .data-note .warn { color: #8b2c1f; }
+
+/* ---------- Nomes das amostras e mapa no histórico ---------- */
+.pc-names { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
+.pc-names[hidden] { display: none; }
+.pc-names-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.pc-names-head .link-btn { font-size: 9.5px; }
+.nm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 10px; }
+.nm-item { display: flex; flex-direction: column; gap: 3px; }
+.nm-col { font-family: var(--mono); font-size: 8.5px; color: var(--muted); }
+.nm-item input { font: inherit; font-size: 11px; color: var(--ink); background: #fbfaf6; border: 1px solid var(--card-border); border-radius: 3px; padding: 6px 8px; outline: none; }
+.nm-item input:focus { border-color: var(--ink-soft); }
+.pc-hint0 { display: block; font-size: 8.5px; color: var(--muted); margin-top: 6px; }
+.hmap { margin-bottom: 12px; }
+.hmap-title { font-size: 8.5px; letter-spacing: .1em; color: var(--ink); margin-bottom: 6px; }
+.hmap-grid { display: grid; grid-template-columns: 14px repeat(var(--cols), minmax(0, 26px)); gap: 3px; align-items: center; }
+.ml { font-family: var(--mono); font-size: 8px; color: var(--muted); text-align: center; }
+.mw { aspect-ratio: 1; border-radius: 50%; border: 1px solid #c9cfc8; background: #fff; display: grid; place-items: center; font-family: var(--mono); font-size: 8px; font-weight: 600; color: var(--ink); }
+.mw.t-cell { background: var(--c); border-color: color-mix(in srgb, var(--c) 70%, #000); }
+.mw.t-ctl { background: #fff; border: 2px dashed color-mix(in srgb, var(--c) 60%, #000); font-size: 7px; }
+.mw.t-blank { background: #fff; border-color: #c58a1e; box-shadow: inset 0 0 0 2px #f3d9a4; color: #7a4a1c; }
+.mw.t-pbs { background: #cfe0ee; border-color: #8fb0cf; }
+.hmap-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 10px; color: var(--ink); }
+.hmap-leg b { font-family: var(--mono); font-size: 9px; background: var(--tint); border: 1px solid var(--tint-border); border-radius: 10px; padding: 0 6px; margin-right: 3px; }
+.hmap-leg em { font-style: normal; color: var(--muted); }
+
+/* placa do painel: rótulos de linha/coluna e legenda nos poços */
+.plate-wells { align-items: center; }
+.pl-lab { font-family: var(--mono); font-size: 8px; color: #b9cbbf; text-align: center; line-height: 1; }
+.plate-wells .well { display: grid; place-items: center; font-family: var(--mono); font-weight: 600; color: #10302c; font-size: 10px; line-height: 1; overflow: hidden; }
+.plate-wells.f6 .well, .plate-wells.f12 .well { font-size: 14px; }
+.plate-wells.f24 .well { font-size: 12px; }
+.plate-wells.f48 .well { font-size: 10px; }
+.plate-wells.f96 .well { font-size: 7.5px; }
+.plate-wells .well.ctl { color: #e8f2e4; }
+.plate-wells .well.blank { color: #7a4a1c; }
