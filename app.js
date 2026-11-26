@@ -10,7 +10,7 @@
 
   /* ---------------- Navegação ---------------- */
   function go(view) {
-    if (!["home", "count", "viab", "plate", "bank", "lines", "people", "store", "take", "dewar", "sub"].includes(view)) view = "home";
+    if (!["home", "count", "viab", "plate", "bank", "lines", "people", "store", "take", "dewar", "sub", "hist"].includes(view)) view = "home";
     app.dataset.view = view;
     document.dispatchEvent(new CustomEvent("viewchange", { detail: view }));
     if (location.hash.slice(1) !== view) history.replaceState(null, "", "#" + view);
@@ -155,6 +155,9 @@
   };
   const mL = (v) => `${fmtDec(v, 3)} mL`;
   const UNIT = ' <span class="unit">mL</span>';
+  // volume arredondado a 1 casa, com o valor de 3 casas pequeno ao lado (referência)
+  const V1 = (v) => `${v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span class="unit">mL</span> <small class="raw">(${v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })})</small>`;
+
   const uL = (v) => `${fmtDec(v * 1000, 1)} µL`;
 
   function drawPlate(wells, corr) {
@@ -216,7 +219,7 @@
 
     // 3. alíquota da solução-mãe
     const aliq = need && stock && rv ? (need * rv) / stock : null;
-    $("#rAliq").innerHTML = (aliq !== null ? fmtDec(aliq, 3) : "—") + UNIT;
+    $("#rAliq").innerHTML = aliq !== null ? V1(aliq) : "—" + UNIT;
     $("#rAliqF").innerHTML = aliq !== null
       ? `${fmtInt(need)} ÷ (${fmtInt(stock)} ÷ ${fmtDec(rv, 3)} mL) = ${uL(aliq)} · concentração da solução-mãe: ${sci(stock / rv)} células/mL`
       : "Células necessárias ÷ (células da solução-mãe ÷ volume de ressuspensão).";
@@ -230,7 +233,7 @@
 
     // 5. meio de cultivo para completar
     const med = work !== null && aliq !== null ? work - aliq : null;
-    $("#rMedium").innerHTML = (med !== null ? fmtDec(Math.max(0, med), 3) : "—") + UNIT;
+    $("#rMedium").innerHTML = med !== null ? V1(Math.max(0, med)) : "—" + UNIT;
     $("#rMediumF").textContent = med !== null
       ? `${fmtDec(work, 3)} mL − ${fmtDec(aliq, 3)} mL`
       : "Volume da solução de trabalho − alíquota da solução-mãe.";
@@ -239,6 +242,8 @@
     const LEFT_MIN = 90000;
     const box = $("#pLeft");
     const left = stock && need ? stock - need : null;
+    window.PlateLeft = left > 0 && rv && aliq !== null ? { cells: left, vol: rv - aliq, conc: stock / rv } : null;
+    document.dispatchEvent(new Event("leftoverchange"));
     if (left === null || left < 0) {
       box.hidden = true;
     } else {

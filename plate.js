@@ -16,6 +16,8 @@
   const view = $(".view-plate");
   const fmtInt = (n) => Math.round(n).toLocaleString("pt-BR");
   const fmtDec = (n, d = 3) => n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: d });
+  // volume arredondado a 1 casa, com o valor de 3 casas pequeno ao lado (referência)
+  const V1 = (v) => `${v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span class="unit">mL</span> <small class="raw">(${v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })})</small>`;
   const UNIT = (u) => ` <span class="unit">${u}</span>`;
   const plural = (n, a, b) => `${fmtInt(n)} ${Math.round(n) === 1 ? a : b}`;
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -125,6 +127,7 @@
       $("#mNeed").textContent = "—";
       $("#dgSteps").innerHTML = `<div class="plan-row"><span>Preencha as densidades e o volume da solução-mãe para ver o preparo.</span></div>`;
       $("#mLeft").hidden = true; $("#mAlert").hidden = true;
+      window.PlateLeftMulti = null; document.dispatchEvent(new Event("leftoverchange"));
       return;
     }
 
@@ -152,9 +155,9 @@
           <i class="step-ic">${k + 1}</i>
           <div><b>Solução ${k + 1} · Densidade ${s.L}</b><span>${fmtInt(s.cells)} células em ${fmtDec(s.vol)} mL por poço · ${sci(s.C)} células/mL${s.factor && k > 0 ? ` · diluição 1:${fmtDec(s.factor, 2)}` : ""}</span></div>
         </div>
-        <div class="plan-row"><span>Pegue este volume ${fonte}</span><b>${s.take !== null ? fmtDec(s.take) : "—"}${UNIT("mL")}</b><small>${s.take !== null ? `${fmtDec(s.take * 1000, 1)} µL` : k === 0 ? "Informe o volume da solução-mãe." : ""}</small></div>
-        <div class="plan-row"><span>Adicione este volume de meio para ter ${fmtDec(s.T)} mL de solução</span><b>${s.medium !== null ? fmtDec(Math.max(0, s.medium)) : "—"}${UNIT("mL")}</b><small>${s.take !== null ? `${fmtDec(s.T)} mL − ${fmtDec(s.take)} mL` : ""}</small></div>
-        ${s.give ? `<div class="plan-row ds-first"><span><strong>Retire primeiro a alíquota para a próxima solução:</strong> separe este volume para preparar a Solução ${k + 2}</span><b>${fmtDec(s.give)}${UNIT("mL")}</b><small>Homogeneíze bem antes de retirar · ${fmtInt(s.C * s.give)} células</small></div>` : ""}
+        <div class="plan-row"><span>Pegue este volume ${fonte}</span><b>${s.take !== null ? V1(s.take) : "—" + UNIT("mL")}</b><small>${s.take !== null ? `${fmtDec(s.take * 1000, 1)} µL` : k === 0 ? "Informe o volume da solução-mãe." : ""}</small></div>
+        <div class="plan-row"><span>Adicione este volume de meio para ter ${fmtDec(s.T)} mL de solução</span><b>${s.medium !== null ? V1(Math.max(0, s.medium)) : "—" + UNIT("mL")}</b><small>${s.take !== null ? `${fmtDec(s.T)} mL − ${fmtDec(s.take)} mL` : ""}</small></div>
+        ${s.give ? `<div class="plan-row ds-first"><span><strong>Retire primeiro a alíquota para a próxima solução:</strong> separe este volume para preparar a Solução ${k + 2}</span><b>${V1(s.give)}</b><small>Homogeneíze bem antes de retirar · ${fmtInt(s.C * s.give)} células</small></div>` : ""}
         <div class="plan-row ds-use"><span>${s.give ? "Depois plaqueie" : "Plaqueie"} ${fmtDec(s.vol)} mL em cada um dos ${fmtInt(s.wells)} poços</span><b>${fmtDec(s.Vw)}${UNIT("mL")}</b><small>${fmtInt(s.wc)} poços (com +15%) × ${fmtDec(s.vol)} mL · ${fmtInt(s.wc * s.cells)} células</small></div>
       </div>`;
     }).join("");
@@ -170,6 +173,8 @@
     // sobra
     const box = $("#mLeft");
     const left = stock ? stock - need : null;
+    window.PlateLeftMulti = left > 0 && Cm && list[0].take !== null ? { cells: left, vol: resusp - list[0].take, conc: Cm } : null;
+    document.dispatchEvent(new Event("leftoverchange"));
     if (left === null || left < 0 || !Cm) box.hidden = true;
     else {
       const good = left > LEFT_MIN;

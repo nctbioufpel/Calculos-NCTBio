@@ -115,6 +115,12 @@
               <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
           </button>
+          <button class="option option-hist" data-go="hist">
+            <span><svg class="hist-ic" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Histórico de registros <small class="opt-count" id="histHomeCount"></small></span>
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
         </div>
 
         <footer class="foot mono">USO EM BANCADA</footer>
@@ -437,6 +443,10 @@
         </button>
         <h2 class="page-title">Contagem por quadrante</h2>
         <p class="page-sub">Registre a contagem de cada quadrante observado.</p>
+        <div class="who-row" data-who="count">
+          <label class="lf-field"><span>Linhagem</span><select class="who-line"></select></label>
+          <label class="lf-field"><span>Pesquisador solicitante</span><select class="who-person"></select></label>
+        </div>
 
         <div class="count-col">
           <label class="field">
@@ -474,6 +484,10 @@
           </div>
 
           <div class="actions">
+            <button class="btn-save" data-hsave="count">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h11l3 3v13H5z M8 4v5h7V4 M8 20v-6h8v6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              Salvar contagem no histórico
+            </button>
             <button class="btn-clear" data-clear="count">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Limpar campos
@@ -500,6 +514,10 @@
         </button>
         <h2 class="page-title">Subcultura e/ou criogenização</h2>
         <p class="page-sub">Conte as células e distribua a ressuspensão entre garrafas e criotubos.</p>
+        <div class="who-row" data-who="sub">
+          <label class="lf-field"><span>Linhagem</span><select class="who-line"></select></label>
+          <label class="lf-field"><span>Pesquisador solicitante</span><select class="who-person"></select></label>
+        </div>
 
         <div class="sub-grid">
           <!-- ===== Coluna 1: contagem ===== -->
@@ -630,9 +648,43 @@
               <div class="plan-row"><span>Ressuspensão que sobra no falcon</span><b id="sumLeft">— <span class="unit">mL</span></b><small id="sumLeftF"></small></div>
             </div>
             <div class="alert" id="subAlert" hidden></div>
+            <div class="actions sub-save">
+              <button class="btn-save" data-hsave="sub">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h11l3 3v13H5z M8 4v5h7V4 M8 20v-6h8v6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                Salvar subcultura no histórico
+              </button>
+            </div>
           </div>
         </div>
 
+        <footer class="foot mono">USO EM BANCADA</footer>
+      </section>
+
+      <!-- ---------- HISTÓRICO DE REGISTROS ---------- -->
+      <section class="view view-hist">
+        <button class="back mono" data-go="home">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          início
+        </button>
+        <h2 class="page-title">Histórico de registros</h2>
+        <p class="page-sub">Contagens, plaqueamentos, viabilidades e subculturas salvos com o botão “Salvar no histórico”.</p>
+        <div class="lines-wrap">
+          <div class="tabs" id="hTabs" role="tablist">
+            <button class="tab on" data-htab="">Todos <span class="tab-count" data-hc=""></span></button>
+            <button class="tab" data-htab="count">Contagem e plaqueamento <span class="tab-count" data-hc="count"></span></button>
+            <button class="tab" data-htab="viab">Viabilidade <span class="tab-count" data-hc="viab"></span></button>
+            <button class="tab" data-htab="sub">Subcultura <span class="tab-count" data-hc="sub"></span></button>
+          </div>
+          <div class="lines-toolbar">
+            <label class="search">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="hSearch" type="search" placeholder="Buscar linhagem, pesquisador, observação…" />
+            </label>
+            <button class="btn-clear" id="hExport">Exportar (CSV)</button>
+          </div>
+          <div id="hList"></div>
+          <p class="data-note" id="hNote">Modo de teste: o histórico fica salvo <strong>neste navegador</strong>.</p>
+        </div>
         <footer class="foot mono">USO EM BANCADA</footer>
       </section>
 
@@ -795,7 +847,24 @@
             <div class="alert" id="mAlert" hidden></div>
           </div>
 
+          <!-- O que fazer com as células que sobram -->
+          <div class="left-use" id="leftUse" hidden>
+            <div class="lu-head">
+              <span class="sb-title">O que fazer com as células que sobram?</span>
+              <small id="luSrc"></small>
+            </div>
+            <div class="seg" id="luMode">
+              <button type="button" class="on" data-lu="no">Não dividir</button>
+              <button type="button" data-lu="yes">Dividir em garrafas e/ou criotubos</button>
+            </div>
+            <div class="lu-body" id="luBody" hidden></div>
+          </div>
+
           <div class="actions">
+            <button class="btn-save" data-hsave="plate">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h11l3 3v13H5z M8 4v5h7V4 M8 20v-6h8v6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              Salvar contagem + plaqueamento no histórico
+            </button>
             <button class="btn-clear" data-clear="plate">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Limpar campos
@@ -818,6 +887,10 @@
         </div>
         <h2 class="page-title">Viabilidade celular</h2>
         <p class="page-sub">Descongelamento de vial de células. Registre o total de células e a contagem de <span class="blue">CORADAS</span> por quadrante.</p>
+        <div class="who-row" data-who="viab">
+          <label class="lf-field"><span>Linhagem</span><select class="who-line"></select></label>
+          <label class="lf-field"><span>Pesquisador solicitante</span><select class="who-person"></select></label>
+        </div>
 
         <div class="viab-wrap">
           <div class="two-col">
@@ -886,6 +959,10 @@
           </div>
 
           <div class="actions">
+            <button class="btn-save" data-hsave="viab">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h11l3 3v13H5z M8 4v5h7V4 M8 20v-6h8v6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              Salvar viabilidade no histórico
+            </button>
             <button class="btn-clear" data-clear="viab">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Limpar campos
@@ -898,6 +975,23 @@
       </section>
     </main>
   </div>
+
+  <!-- ---------- SALVAR NO HISTÓRICO ---------- -->
+  <div class="hs-modal" id="hsModal" hidden>
+    <form class="hs-card" id="hsForm" autocomplete="off">
+      <div class="obs-head"><b id="hsTitle">Salvar no histórico</b><button type="button" class="lf-close" data-hs-close aria-label="Fechar">×</button></div>
+      <div class="hs-sum" id="hsSum"></div>
+      <div class="lf-grid hs-grid">
+        <label class="lf-field"><span>Linhagem</span><select id="hrLine"></select></label>
+        <label class="lf-field"><span>Pesquisador solicitante</span><select id="hrPerson"></select></label>
+        <label class="lf-field"><span>Data</span><input id="hrDate" type="date" /></label>
+        <label class="lf-field"><span>Passagem</span><input id="hrPass" inputmode="numeric" placeholder="Opcional" /></label>
+        <label class="lf-field hs-wide"><span>Observação</span><input id="hrObs" placeholder="Ex.: experimento de citotoxicidade, placa 1" /></label>
+      </div>
+      <div class="lf-actions"><button type="submit" class="btn-primary">Salvar no histórico</button><button type="button" class="btn-clear" data-hs-close>Cancelar</button><span class="lf-msg" id="hsMsg"></span></div>
+    </form>
+  </div>
+  <div class="toast" id="toast" hidden></div>
 
   <!-- ---------- ACESSO ---------- -->
   <div class="login" id="login" hidden>
@@ -920,5 +1014,7 @@
   <script src="sub.js"></script>
   <script src="plate.js"></script>
   <script src="plate-map.js"></script>
+  <script src="distrib.js"></script>
+  <script src="history.js"></script>
 </body>
 </html>

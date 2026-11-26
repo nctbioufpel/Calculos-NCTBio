@@ -18,6 +18,8 @@
   /* ---------- formatação ---------- */
   const fmtInt = (n) => Math.round(n).toLocaleString("pt-BR");
   const fmtDec = (n, d = 3) => n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: d });
+  // volume arredondado a 1 casa, com o valor de 3 casas pequeno ao lado (referência)
+  const V1 = (v) => `${v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span class="unit">mL</span> <small class="raw">(${v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })})</small>`;
   const UNIT = (u) => ` <span class="unit">${u}</span>`;
   function sci(n) {
     if (!isFinite(n) || n <= 0) return "—";
@@ -183,12 +185,12 @@
       if (cells && conc) {
         const a = cells / conc;
         flCells += cells; flVol += a; flCount++;
-        aliq.innerHTML = fmtDec(a, 3) + UNIT("mL");
-        stby.innerHTML = fmtDec(Math.max(0, sz.vol - a), 3) + UNIT("mL");
+        aliq.innerHTML = V1(a);
+        stby.innerHTML = V1(Math.max(0, sz.vol - a));
         if (a > sz.vol) msgs.push(`<strong>Garrafa ${i + 1}:</strong> a alíquota (${fmtDec(a)} mL) é maior que o volume da garrafa ${sz.nome} (${sz.vol} mL). Ressuspenda o pellet em um volume menor ou escolha uma garrafa maior.`);
       } else {
         aliq.innerHTML = "—" + UNIT("mL");
-        stby.innerHTML = (cells ? "—" : fmtDec(sz.vol)) + UNIT("mL");
+        stby.innerHTML = "—" + UNIT("mL");
       }
     });
 
