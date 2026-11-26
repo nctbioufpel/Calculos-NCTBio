@@ -1108,3 +1108,4 @@ b small.raw { padding-left: 0 !important; display: inline !important; grid-colum
 .app[data-mode="view"] .lock-ic { display: inline; }
 .app[data-mode="view"] .btn-save::after { content: "🔒"; font-size: 11px; margin-left: 2px; }
 .app[data-mode="view"] .btn-save, .app[data-mode="view"] [data-hdel] { opacity: .8; }
+.data-note .warn { color: #8b2c1f; }

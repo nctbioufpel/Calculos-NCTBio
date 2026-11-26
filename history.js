@@ -43,9 +43,23 @@
   const canEdit = () => !window.Auth || window.Auth.canEdit();
 
   /* ---------- armazenamento ---------- */
+  // Online (Planilha Google): usa o banco sincronizado. Sem planilha: fica neste navegador.
   let mem = [];
-  const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : mem; } catch (e) { return mem; } };
-  const store = (list) => { mem = list; try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* ignora */ } };
+  const loadLocal = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : mem; } catch (e) { return mem; } };
+  const storeLocal = (list) => { mem = list; try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* ignora */ } };
+  const ONLINE = () => !!(window.Bank && window.Bank.online && window.Bank.online());
+  const H = () => window.Bank.hist;
+  const load = () => (ONLINE() ? H().list() : loadLocal());
+  function addRec(rec) {
+    if (!ONLINE()) { storeLocal([rec, ...loadLocal()]); return true; }
+    if (!H().ready()) { toast("Aguarde: carregando os dados da planilha online.", true); return false; }
+    if (!H().supported()) { toast("A planilha ainda não tem a aba Histórico. Atualize o código (Code.gs) e faça uma nova versão da implantação.", true); return false; }
+    return H().add(rec);
+  }
+  function delRec(id) {
+    if (!ONLINE()) { storeLocal(loadLocal().filter((x) => x.id !== id)); return true; }
+    return H().del(id);
+  }
 
   /* ---------- coleta dos dados de cada tela ---------- */
   function countPart(D) {
@@ -184,7 +198,7 @@
       lin: $("#hrLine").value, pes: $("#hrPerson").value, pass: $("#hrPass").value, obs: $("#hrObs").value.trim(),
       summary: pending.S, details: pending.D,
     };
-    store([rec, ...load()]);
+    if (!addRec(rec)) return;
     closeSave();
     render();
     toast(`${TYPES[rec.type]}: registro salvo no histórico. <a href="#hist">Ver histórico</a>`);
@@ -201,7 +215,23 @@
   /* ---------- tela do histórico ---------- */
   let tab = "";
   const open = new Set();
+  function renderNote() {
+    const note = $("#hNote");
+    if (!note) return;
+    if (!ONLINE()) { note.innerHTML = "Modo local: o histórico fica salvo <strong>neste navegador</strong>."; return; }
+    if (!H().supported()) { note.innerHTML = '<b class="warn">A planilha ainda não tem a aba Histórico.</b> Atualize o código do Apps Script (Code.gs) e faça uma nova versão da implantação para sincronizar o histórico.'; return; }
+    const local = loadLocal().filter((r) => !H().list().some((x) => x.id === r.id));
+    note.innerHTML = "Registros salvos na <strong>Planilha Google</strong> do laboratório: todos os aparelhos veem o mesmo histórico." +
+      (local.length && H().ready() ? `<br><button type="button" class="link-btn" id="hMigrate">Enviar ${local.length} ${local.length === 1 ? "registro salvo" : "registros salvos"} neste aparelho (modo de teste) para a planilha</button>` : "");
+    const b = $("#hMigrate");
+    if (b) b.addEventListener("click", () => {
+      if (!canEdit()) { if (window.Auth) window.Auth.ask(); return; }
+      if (!confirm(`Enviar ${local.length} registros do modo de teste para o histórico oficial?`)) return;
+      if (H().addMany(local)) { storeLocal([]); render(); toast("Registros enviados para a planilha."); }
+    });
+  }
   function render() {
+    renderNote();
     const all = load();
     $$("[data-hc]").forEach((el) => { const k = el.dataset.hc; el.textContent = all.filter((r) => !k || GROUP(r.type) === k).length; });
     const hc = $("#histHomeCount"); if (hc) hc.textContent = all.length ? `· ${all.length} ${all.length === 1 ? "registro" : "registros"}` : "";
@@ -243,7 +273,7 @@
       if (!canEdit()) { if (window.Auth) window.Auth.ask(); return; }
       const r = load().find((x) => x.id === d.dataset.hdel);
       if (r && confirm(`Excluir o registro de ${TYPES[r.type].toLowerCase()} de ${fmtDate(r.data)}${r.lin ? " (" + r.lin + ")" : ""}? Essa ação não pode ser desfeita.`)) {
-        store(load().filter((x) => x.id !== r.id)); open.delete(r.id); render();
+        if (delRec(r.id)) { open.delete(r.id); render(); }
       }
       return;
     }
@@ -269,6 +299,7 @@
     if (e.detail === "hist" || e.detail === "home") render();
     if (["count", "viab", "sub"].includes(e.detail)) fillWho();
   });
+  document.addEventListener("bankdata", () => setTimeout(render, 0));
   render();
   fillWho();
 })();

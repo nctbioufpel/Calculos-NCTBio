@@ -122,14 +122,19 @@
   const API = String(window.NCTBIO_API || "").trim();
   const ONLINE = /^https:\/\/script\.google(usercontent)?\.com\//.test(API);
   const KEY_ONLINE = "nctbio.banco.online";
-  const COLS = ["linhagens", "pesquisadores", "tubos"];
+  const COLS = ["linhagens", "pesquisadores", "tubos", "historico"];
+  let histServer = true;     // a planilha já tem a aba Historico (Code.gs atualizado)
   let ready = !ONLINE;       // online: só permite gravar depois de carregar a planilha
   let serverEmpty = false;   // planilha ainda sem dados (falta importar)
-  let snapshot = { linhagens: {}, pesquisadores: {}, tubos: {} }; // último estado confirmado no servidor
+  let snapshot = { linhagens: {}, pesquisadores: {}, tubos: {}, historico: {} }; // último estado confirmado no servidor
   let inflight = false, again = false, retryT = null, lastPull = 0;
   let syncState = ONLINE ? "carregando" : "local";
 
   function toRow(col, o) {
+    if (col === "historico") {
+      return { id: o.id, type: o.type || "", ts: o.ts || "", data: o.data || "", lin: o.lin || "", pes: o.pes || "", pass: o.pass || "", obs: o.obs || "",
+        summary: JSON.stringify(o.summary || []), details: JSON.stringify(o.details || []) };
+    }
     if (col !== "tubos") {
       const r = {};
       Object.keys(o).forEach((k) => { if (o[k] !== undefined && typeof o[k] !== "object") r[k] = o[k] == null ? "" : String(o[k]); });
@@ -166,11 +171,13 @@
       return t;
     });
     const clean = (arr) => (arr || []).map((o) => { const x = {}; Object.keys(o).forEach((k) => { if (o[k] !== "") x[k] = o[k]; }); return x; });
-    return { versao: SEED.versao, linhagens: clean(d.linhagens), pesquisadores: clean(d.pesquisadores), tubos };
+    const pj = (x) => { try { return JSON.parse(x || "[]"); } catch (e) { return []; } };
+    const historico = (d.historico || []).map((r) => ({ id: r.id, type: r.type, ts: r.ts, data: r.data, lin: r.lin || "", pes: r.pes || "", pass: r.pass || "", obs: r.obs || "", summary: pj(r.summary), details: pj(r.details) }));
+    return { versao: SEED.versao, linhagens: clean(d.linhagens), pesquisadores: clean(d.pesquisadores), tubos, historico };
   }
   function snap(d) {
     const s = {};
-    COLS.forEach((c) => { s[c] = {}; d[c].forEach((o) => (s[c][o.id] = JSON.stringify(toRow(c, o)))); });
+    COLS.forEach((c) => { s[c] = {}; (d[c] || []).forEach((o) => (s[c][o.id] = JSON.stringify(toRow(c, o)))); });
     return s;
   }
   function diff() {
@@ -178,7 +185,8 @@
     let n = 0;
     COLS.forEach((c) => {
       const up = [], seen = {};
-      db[c].forEach((o) => {
+      if (c === "historico" && !histServer) return;   // planilha antiga: não envia histórico
+      (db[c] || []).forEach((o) => {
         seen[o.id] = 1;
         const r = toRow(c, o), j = JSON.stringify(r);
         if (snapshot[c][o.id] !== j) up.push(r);
@@ -240,6 +248,7 @@
         return;
       }
       serverEmpty = false;
+      histServer = Object.prototype.hasOwnProperty.call(d, "historico");
       const novo = fromServer(d);
       const mudou = JSON.stringify(snap(novo)) !== JSON.stringify(snapshot);
       snapshot = snap(novo);
@@ -1317,6 +1326,15 @@
 
   /* ================= API para outras telas (ex.: Subcultura) ================= */
   window.Bank = {
+    online: () => ONLINE,
+    hist: {
+      ready: () => ONLINE && ready,
+      supported: () => histServer,
+      list: () => (db.historico || []).slice(),
+      add(rec) { if (blocked()) return false; if (!(ONLINE && ready)) return false; db.historico = [rec, ...(db.historico || [])]; save(); return true; },
+      addMany(recs) { if (blocked()) return false; const ids = new Set((db.historico || []).map((r) => r.id)); db.historico = [...recs.filter((r) => !ids.has(r.id)), ...(db.historico || [])]; save(); return true; },
+      del(id) { if (blocked()) return false; db.historico = (db.historico || []).filter((r) => r.id !== id); save(); return true; },
+    },
     canEdit,
     ask: () => blocked(),
     ready: () => !ONLINE || ready,
@@ -1348,6 +1366,7 @@
   /* ================= Inicialização ================= */
   let currentView = "";
   function refreshAll() {
+    document.dispatchEvent(new Event("bankdata"));
     renderMenu();
     if (currentView === "lines") renderLines();
     if (currentView === "people") renderPeople();
